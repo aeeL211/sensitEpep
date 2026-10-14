@@ -1,38 +1,71 @@
 name: Build plugin
+
 on:
   push:
     branches: [main]
     tags: ['v*']
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
+
       - name: Compile (arm64)
         run: |
           set -e
-          CXX=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++
+
+          CXX="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang++"
+
           mkdir -p module/system/bin
-          $CXX -O2 -DNDEBUG -Wall -Wextra -s \
-            -fno-exceptions -fno-rtti -fvisibility=hidden \
-            -ffunction-sections -fdata-sections -Wl,--gc-sections \
-            native/sensit.cpp -o module/system/bin/sensit
+
+          "$CXX" \
+            -O2 \
+            -DNDEBUG \
+            -Wall \
+            -Wextra \
+            -s \
+            -fno-exceptions \
+            -fno-rtti \
+            -fvisibility=hidden \
+            -ffunction-sections \
+            -fdata-sections \
+            -static-libstdc++ \
+            -Wl,--gc-sections \
+            native/sensit.cpp \
+            -o module/system/bin/sensit
+
+          echo "=== Binary ==="
           file module/system/bin/sensit
-          ls -l module/system/bin/sensit
+
+          echo "=== Dynamic dependencies ==="
+          readelf -d module/system/bin/sensit || true
+
+          echo "=== Binary size ==="
+          ls -lh module/system/bin/sensit
+
       - name: Package
         run: |
+          set -e
+
           VER=$(grep '^version=' module/module.prop | cut -d= -f2)
-          cd module && zip -r ../Sensitivity-$VER.zip .
-      - uses: actions/upload-artifact@v4
+
+          cd module
+          zip -r "../Sensitivity-$VER.zip" .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: Sensitivity
           path: Sensitivity-*.zip
+
       - name: Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           files: Sensitivity-*.zip
-          
