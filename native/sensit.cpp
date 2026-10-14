@@ -38,11 +38,14 @@ static char g_dir[256] = ".";  // directory of the config file (the plugin folde
 // zone            : 0 whole screen, 1 left half, 2 right half     orient: 1 or 3 (which landscape)
 // smooth          : 1 = One Euro Filter, strength / resp 1..100 (%)
 // filter          : 1 = only while the game is in the foreground
+// clamp           : 0 = scaled movement may run past the screen edge (default), 1 = stop at the edge
+// strength/resp defaults (40 / 85) were picked by simulating Free Fire style aiming: about half
+// of the resting jitter removed while a fast flick is delayed by less than one touch frame.
 struct Config {
     float kh = 1.0f, kv = 1.0f;
     int zone = 0, orient = 1;
-    int smooth = 0, strength = 50, resp = 50;
-    int filter = 1;
+    int smooth = 0, strength = 40, resp = 85;
+    int filter = 1, clamp = 0;
     float fcmin = 3.0f, beta = 5.0f;  // derived One Euro parameters
 };
 
@@ -74,6 +77,7 @@ static void load_config(const char *path, Config &c) {
             else if (!strcmp(k, "strength")) c.strength = clampi(atoi(v), 1, 100);
             else if (!strcmp(k, "resp")) c.resp = clampi(atoi(v), 1, 100);
             else if (!strcmp(k, "filter")) c.filter = atoi(v) != 0;
+            else if (!strcmp(k, "clamp")) c.clamp = atoi(v) != 0;
         }
         fclose(f);
     }
@@ -251,9 +255,10 @@ static int create_clone(int src) {
 
 // ---------------------------------------------------------------- scaling + stabilizing
 // Per finger and axis: optional One Euro Filter on the raw position (Casiez et al., CHI 2012),
-// then incremental scaling of the filtered movement. The pointer reacts immediately after hitting
-// a screen edge. Per-touch settings are fixed at touch-down, so a finger that is already down
-// never jumps when a slider changes.
+// then scaling of the filtered movement around the touch-down point. The scaled position is NOT
+// clamped to the panel (unless cfg.clamp), so a swipe never stalls before the finger reaches the
+// screen edge: games only look at the movement between events. Per-touch settings are fixed at
+// touch-down, so a finger that is already down never jumps when a slider changes.
 struct Axis { float k; bool filt, have; float raw, xhat, dxhat, fprev, out; double t; };
 struct Slot { Axis x, y; bool zk; };
 static Slot slots[MAXSLOT + 1];  // last entry absorbs out-of-range slot numbers
@@ -290,8 +295,10 @@ static int track(int v, double t, Axis &a, int lo, int hi, const Config &c) {
     a.t = t;
     a.out += (fx - a.fprev) * a.k;
     a.fprev = fx;
-    if (a.out < (float)lo) a.out = (float)lo; else if (a.out > (float)hi) a.out = (float)hi;
-    return (int)(a.out + 0.5f);
+    if (c.clamp) {
+        if (a.out < (float)lo) a.out = (float)lo; else if (a.out > (float)hi) a.out = (float)hi;
+    }
+    return (int)floorf(a.out + 0.5f);
 }
 
 static void start_touch(Slot &s, const Config *c) {
