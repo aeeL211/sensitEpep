@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sensitivity</title>
+<style>
+:root{--bg:#eef0f3;--panel:#fff;--ink:#16191f;--mute:#667085;--line:#d5d9e0;--acc:#2f5bff;--on:#fff;--stop:#d92d43}
+@media(prefers-color-scheme:dark){:root{--bg:#12151a;--panel:#1a1e25;--ink:#eceff4;--mute:#8b94a3;--line:#2b313b;--acc:#7b97ff;--on:#10131a;--stop:#ff6b7d}}
+*{box-sizing:border-box}
+body{margin:0;padding:20px 16px 40px;max-width:480px;margin-inline:auto;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+h1{font-size:20px;margin:0 0 16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+.read{font-size:76px;line-height:1;font-weight:700;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+.read small{font-size:32px;color:var(--mute);margin-left:4px;letter-spacing:0}
+.state{color:var(--mute);margin:6px 0 18px}
+.state b{color:var(--ink)}
+input[type=range]{width:100%;height:36px;accent-color:var(--acc)}
+.ticks{display:flex;justify-content:space-between;color:var(--mute);font-size:13px}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:8px}
+.seg button{flex:1;border:0;background:none;color:var(--ink);padding:10px;font:inherit}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--acc);color:var(--on)}
+label{font-weight:600}
+.hint{color:var(--mute);font-size:13px;margin:8px 0 0}
+.main{width:100%;border:0;border-radius:12px;padding:16px;font:inherit;font-weight:700;background:var(--acc);color:var(--on)}
+.main.stop{background:var(--stop);color:#fff}
+.kill{width:100%;margin-top:10px;border:1px solid var(--stop);color:var(--stop);background:none;border-radius:12px;padding:12px;font:inherit}
+button:disabled{opacity:.5}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+pre{margin:0;font-size:12px;color:var(--mute);white-space:pre-wrap;word-break:break-word}
+</style>
+</head>
+<body>
+<h1>Sensitivity</h1>
+<div class="card">
+  <div class="read"><span id="val">1.0</span><small>×</small></div>
+  <div class="state">Status: <b id="state">memeriksa…</b></div>
+  <input id="sens" type="range" min="1" max="5" step="0.1" value="1" aria-label="Sensitivitas">
+  <div class="ticks"><span>1.0</span><span>2.0</span><span>3.0</span><span>4.0</span><span>5.0</span></div>
+  <p class="hint">Perubahan berlaku mulai sentuhan berikutnya.</p>
+</div>
+<div class="card">
+  <label>Arah gerak (game landscape)</label>
+  <div class="seg" id="axis">
+    <button data-v="0" class="on">Semua</button><button data-v="1">Atas-bawah</button><button data-v="2">Kiri-kanan</button>
+  </div>
+</div>
+<button class="main" id="toggle">Aktifkan</button>
+<button class="kill" id="kill">Matikan sekarang</button>
+<div class="card" style="margin-top:14px"><pre id="log">—</pre></div>
+<script>
+const DIR='/data/local/tmp/AxManager/plugins/sensit';
+const BIN=DIR+'/system/bin/sensit';
+let sens=1.0, axis=0, running=false, busy=false;
+const $=id=>document.getElementById(id);
+
+function run(cmd){
+  return new Promise(res=>{
+    if(!window.ksu||!ksu.exec){res({errno:-1,stdout:'',stderr:'API ksu.exec tidak ditemukan'});return;}
+    const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    window[cb]=(errno,stdout,stderr)=>{delete window[cb];res({errno,stdout:stdout||'',stderr:stderr||''});};
+    ksu.exec(cmd,'{}',cb);
+  });
+}
+const log=t=>{$('log').textContent=t||'—';};
+function render(){
+  $('val').textContent=sens.toFixed(1);
+  $('state').textContent=running?'Berjalan':'Mati';
+  $('toggle').textContent=running?'Nonaktifkan':'Aktifkan';
+  $('toggle').classList.toggle('stop',running);
+  $('toggle').disabled=busy;
+  document.querySelectorAll('#axis button').forEach(b=>b.classList.toggle('on',+b.dataset.v===axis));
+}
+// Atomic write: the daemon reloads on rename, never sees a half-written file.
+const saveCfg=()=>run(`printf 'enabled=1\\nsens=${sens.toFixed(1)}\\naxis=${axis}\\n' > ${DIR}/config.tmp && mv ${DIR}/config.tmp ${DIR}/config`);
+
+async function refresh(){
+  const r=await run(`cat ${DIR}/config 2>/dev/null; echo "running=$([ -f ${DIR}/sensit.pid ] && kill -0 $(cat ${DIR}/sensit.pid) 2>/dev/null && echo 1 || echo 0)"`);
+  r.stdout.split('\n').forEach(l=>{
+    const [k,v]=l.split('=');
+    if(k==='sens')sens=parseFloat(v)||1;
+    if(k==='axis')axis=parseInt(v)||0;
+    if(k==='running')running=v==='1';
+  });
+  $('sens').value=sens;
+  if(r.errno!==0&&r.stderr)log(r.stderr);
+  render();
+}
+async function guarded(fn){
+  if(busy)return;
+  busy=true;render();
+  try{await fn();}finally{busy=false;await refresh();}
+}
+const start=()=>guarded(async()=>{
+  await saveCfg();
+  const r=await run(`chmod 755 ${BIN}; ${BIN} --daemon --config ${DIR}/config --pidfile ${DIR}/sensit.pid 2>&1`);
+  log((r.stdout+r.stderr).trim());
+});
+const stop=()=>guarded(async()=>{
+  await run(`kill $(cat ${DIR}/sensit.pid) 2>/dev/null; rm -f ${DIR}/sensit.pid`);
+  log('Dihentikan. Sentuhan kembali normal.');
+});
+$('sens').addEventListener('input',e=>{sens=parseFloat(e.target.value);render();});
+$('sens').addEventListener('change',saveCfg);
+$('axis').addEventListener('click',e=>{
+  if(e.target.tagName!=='BUTTON')return;
+  axis=+e.target.dataset.v;render();saveCfg();
+});
+$('toggle').addEventListener('click',()=>running?stop():start());
+$('kill').addEventListener('click',stop);
+refresh();
+</script>
+</body>
+</html>
