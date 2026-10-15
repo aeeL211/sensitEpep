@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sensitivity</title>
+<style>
+:root{--bg:#eef0f3;--panel:#fff;--ink:#16191f;--mute:#667085;--line:#d5d9e0;--acc:#2f5bff;--on:#fff;--stop:#d92d43}
+@media(prefers-color-scheme:dark){:root{--bg:#12151a;--panel:#1a1e25;--ink:#eceff4;--mute:#8b94a3;--line:#2b313b;--acc:#7b97ff;--on:#10131a;--stop:#ff6b7d}}
+*{box-sizing:border-box}
+body{margin:0;padding:20px 16px 40px;max-width:480px;margin-inline:auto;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:15px;margin:0 0 10px}
+.state{color:var(--mute);margin:0 0 16px}.state b{color:var(--ink)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.read{font-size:40px;line-height:1.1;font-weight:700;letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.read small{font-size:18px;color:var(--mute);margin-left:2px;letter-spacing:0}
+.cap{color:var(--mute);font-size:13px}
+input[type=range]{width:100%;height:34px;accent-color:var(--acc);margin:0}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:none;color:var(--ink);padding:10px 4px;font:inherit;font-size:15px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--acc);color:var(--on)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.row input[type=checkbox]{width:46px;height:26px;accent-color:var(--acc);flex:none}
+.hint{color:var(--mute);font-size:13px;margin:6px 0 0}
+.sub{margin-top:12px}
+.hide{display:none}
+.main{width:100%;border:0;border-radius:12px;padding:16px;font:inherit;font-weight:700;background:var(--acc);color:var(--on)}
+.main.stop{background:var(--stop);color:#fff}
+.kill{width:100%;margin-top:10px;border:1px solid var(--stop);color:var(--stop);background:none;border-radius:12px;padding:12px;font:inherit}
+button:disabled{opacity:.5}
+button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+pre{margin:0;font-size:12px;color:var(--mute);white-space:pre-wrap;word-break:break-word}
+</style>
+</head>
+<body>
+<h1>Sensitivity</h1>
+<p class="state">Status: <b id="state">memeriksa…</b></p>
+
+<div class="card">
+  <h2>Sensitivitas</h2>
+  <div class="pair">
+    <div><div class="cap">Horizontal (kiri-kanan)</div><div class="read"><span data-show="sens_h">1.0</span><small>×</small></div>
+      <input type="range" data-k="sens_h" min="1" max="5" step="0.1" aria-label="Sensitivitas horizontal"></div>
+    <div><div class="cap">Vertikal (atas-bawah)</div><div class="read"><span data-show="sens_v">1.0</span><small>×</small></div>
+      <input type="range" data-k="sens_v" min="1" max="5" step="0.1" aria-label="Sensitivitas vertikal"></div>
+  </div>
+  <div class="row sub"><label for="link">Samakan horizontal &amp; vertikal</label><input id="link" type="checkbox" role="switch"></div>
+</div>
+
+<div class="card">
+  <h2>Bagian layar</h2>
+  <div class="seg" data-k="zone">
+    <button data-v="0">Global</button><button data-v="1">Kiri</button><button data-v="2">Kanan</button>
+  </div>
+  <p class="hint">Di luar area yang dipilih, sentuhan tidak diubah sama sekali.</p>
+  <div id="orientBox" class="sub hide">
+    <div class="cap">Posisi landscape HP</div>
+    <div class="seg" data-k="orient"><button data-v="1">Landscape 90°</button><button data-v="3">Landscape 270°</button></div>
+    <p class="hint">Kalau zona kiri/kanan terasa kebalik, ganti pilihan ini.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="row"><div><h2 style="margin:0">Penstabil gerakan</h2><div class="cap">Menghaluskan getaran jari (One Euro Filter)</div></div>
+    <input type="checkbox" role="switch" data-k="smooth" aria-label="Penstabil gerakan"></div>
+  <div id="smoothBox" class="sub hide">
+    <div class="row"><span>Kekuatan</span><b><span data-show="strength">40</span>%</b></div>
+    <input type="range" data-k="strength" min="1" max="100" step="1" aria-label="Kekuatan">
+    <p class="hint" style="margin:0 0 10px">Makin tinggi, gerakan pelan makin halus (tapi terasa lebih berat).</p>
+    <div class="row"><span>Responsivitas</span><b><span data-show="resp">85</span>%</b></div>
+    <input type="range" data-k="resp" min="1" max="100" step="1" aria-label="Responsivitas">
+    <p class="hint" style="margin:0">Makin tinggi, tarikan cepat makin langsung (lebih sedikit delay).</p>
+  </div>
+</div>
+
+<div class="card row">
+  <div><h2 style="margin:0">Kunci di tepi layar</h2><div class="cap">Biasanya mati: gerakan boleh melewati tepi layar supaya geseran nggak berhenti sebelum jari sampai.</div></div>
+  <input type="checkbox" role="switch" data-k="clamp" aria-label="Kunci di tepi layar">
+</div>
+
+<div class="card row">
+  <div><h2 style="margin:0">Hanya di Free Fire / Max</h2><div class="cap">Di luar game, sentuhan normal sepenuhnya.</div></div>
+  <input type="checkbox" role="switch" data-k="filter" aria-label="Hanya di Free Fire">
+</div>
+
+<button class="main" id="toggle">Aktifkan</button>
+<button class="kill" id="kill">Matikan sekarang</button>
+<div class="card" style="margin-top:12px"><pre id="log">Perubahan berlaku mulai sentuhan berikutnya.</pre></div>
+
+<script>
+const DIR='/data/user_de/0/com.android.shell/axeron/plugins/sensit';
+const cfg={sens_h:1,sens_v:1,zone:0,orient:1,smooth:0,strength:40,resp:85,filter:1,clamp:0};
+let link=true, running=false, busy=false, state='';
+const $=id=>document.getElementById(id);
+const all=sel=>document.querySelectorAll(sel);
+
+function run(cmd){
+  return new Promise(res=>{
+    if(!window.ksu||!ksu.exec){res({errno:-1,stdout:'',stderr:'API ksu.exec tidak ditemukan'});return;}
+    const cb='cb_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+    window[cb]=(errno,stdout,stderr)=>{delete window[cb];res({errno,stdout:stdout||'',stderr:stderr||''});};
+    ksu.exec(cmd,'{}',cb);
+  });
+}
+const log=t=>{$('log').textContent=t||'—';};
+
+function render(){
+  all('[data-show]').forEach(e=>{const k=e.dataset.show;e.textContent=k.startsWith('sens')?cfg[k].toFixed(1):cfg[k];});
+  all('input[type=range][data-k]').forEach(e=>{e.value=cfg[e.dataset.k];});
+  all('input[type=checkbox][data-k]').forEach(e=>{e.checked=!!cfg[e.dataset.k];});
+  all('.seg[data-k]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg[g.dataset.k])));
+  $('link').checked=link;
+  $('orientBox').classList.toggle('hide',cfg.zone===0);
+  $('smoothBox').classList.toggle('hide',!cfg.smooth);
+  $('state').textContent=!running?'Mati':state.startsWith('error:')?'Error: '+state.slice(6):state==='active'?'Aktif (boost menyala)':cfg.filter?'Siaga, menunggu Free Fire':'Siaga';
+  $('toggle').textContent=running?'Nonaktifkan':'Aktifkan';
+  $('toggle').classList.toggle('stop',running);
+  $('toggle').disabled=busy;
+}
+
+// atomic write: the daemon reloads on rename and never sees a half-written file
+function saveCfg(){
+  const body=Object.entries(cfg).map(([k,v])=>k+'='+(k.startsWith('sens')?v.toFixed(1):v)).join('\\n');
+  return run(`printf '${body}\\n' > ${DIR}/config.tmp && mv ${DIR}/config.tmp ${DIR}/config`);
+}
+
+async function refresh(full=true){
+  const r=await run(`cat ${DIR}/config 2>/dev/null; echo "running=$([ -f ${DIR}/sensit.pid ] && kill -0 $(cat ${DIR}/sensit.pid) 2>/dev/null && echo 1 || echo 0)"; echo "state=$(cat ${DIR}/sensit.state 2>/dev/null)"`);
+  r.stdout.split('\n').forEach(l=>{
+    const i=l.indexOf('='); if(i<0)return;
+    const k=l.slice(0,i), v=l.slice(i+1).trim();
+    if(k==='running')running=v==='1';
+    else if(k==='state')state=v;
+    else if(full&&k in cfg&&v!==''&&!isNaN(parseFloat(v)))cfg[k]=parseFloat(v);
+  });
+  if(full)link=cfg.sens_h===cfg.sens_v;
+  if(r.errno!==0&&r.stderr)log(r.stderr);
+  render();
+}
+async function guarded(fn){
+  if(busy)return;
+  busy=true;render();
+  try{await fn();}finally{busy=false;await refresh(false);}
+}
+const start=()=>guarded(async()=>{
+  await saveCfg();
+  const r=await run(`chmod 755 ${DIR}/system/bin/sensit; ${DIR}/system/bin/sensit --daemon --config ${DIR}/config --pidfile ${DIR}/sensit.pid 2>&1`);
+  log((r.stdout+r.stderr).trim());
+});
+const stop=()=>guarded(async()=>{
+  await run(`kill $(cat ${DIR}/sensit.pid) 2>/dev/null; rm -f ${DIR}/sensit.pid`);
+  log('Dihentikan. Sentuhan kembali normal.');
+});
+
+all('input[type=range][data-k]').forEach(e=>{
+  e.addEventListener('input',()=>{
+    const k=e.dataset.k; cfg[k]=parseFloat(e.value);
+    if(link&&k==='sens_h')cfg.sens_v=cfg.sens_h;
+    if(link&&k==='sens_v')cfg.sens_h=cfg.sens_v;
+    render();
+  });
+  e.addEventListener('change',saveCfg);
+});
+all('input[type=checkbox][data-k]').forEach(e=>e.addEventListener('change',()=>{cfg[e.dataset.k]=e.checked?1:0;render();saveCfg();}));
+all('.seg[data-k]').forEach(g=>g.addEventListener('click',ev=>{
+  if(ev.target.tagName!=='BUTTON')return;
+  cfg[g.dataset.k]=+ev.target.dataset.v;render();saveCfg();
+}));
+$('link').addEventListener('change',e=>{link=e.target.checked;if(link)cfg.sens_v=cfg.sens_h;render();saveCfg();});
+$('toggle').addEventListener('click',()=>running?stop():start());
+$('kill').addEventListener('click',stop);
+refresh();
+setInterval(()=>{if(!busy&&!document.hidden)refresh(false);},3000);
+</script>
+</body>
+</html>
