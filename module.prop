@@ -1,7 +1,7 @@
 id=sensit
 name=Sensitivity
-version=v0.6.1
-versionCode=9
+version=v0.7.2
+versionCode=12
 author=you
 description=No-root touch sensitivity booster (1.0x-5.0x) with WebUI. Inspired by Magic Touch from Game Corner.
 axeronPlugin=14000

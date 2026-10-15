@@ -3,99 +3,305 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>Sensitivity</title>
 <style>
-:root{--bg:#eef0f3;--panel:#fff;--ink:#16191f;--mute:#667085;--line:#d5d9e0;--acc:#2f5bff;--on:#fff;--stop:#d92d43}
-@media(prefers-color-scheme:dark){:root{--bg:#12151a;--panel:#1a1e25;--ink:#eceff4;--mute:#8b94a3;--line:#2b313b;--acc:#7b97ff;--on:#10131a;--stop:#ff6b7d}}
-*{box-sizing:border-box}
-body{margin:0;padding:20px 16px 40px;max-width:480px;margin-inline:auto;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,sans-serif}
-h1{font-size:20px;margin:0 0 4px}
-h2{font-size:15px;margin:0 0 10px}
-.state{color:var(--mute);margin:0 0 16px}.state b{color:var(--ink)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:12px}
-.pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.read{font-size:40px;line-height:1.1;font-weight:700;letter-spacing:-1px;font-variant-numeric:tabular-nums}
-.read small{font-size:18px;color:var(--mute);margin-left:2px;letter-spacing:0}
-.cap{color:var(--mute);font-size:13px}
-input[type=range]{width:100%;height:34px;accent-color:var(--acc);margin:0}
-.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.seg button{flex:1;border:0;background:none;color:var(--ink);padding:10px 4px;font:inherit;font-size:15px}
-.seg button+button{border-left:1px solid var(--line)}
-.seg button.on{background:var(--acc);color:var(--on)}
-.row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.row input[type=checkbox]{width:46px;height:26px;accent-color:var(--acc);flex:none}
-.hint{color:var(--mute);font-size:13px;margin:6px 0 0}
-.sub{margin-top:12px}
+/* token dan geometri mengikuti shadcn/ui resmi: docs theming (neutral) dan registry new-york-v4 */
+:root{--radius:.625rem;--radius-xs:.125rem;--radius-sm:calc(var(--radius)*.6);--radius-md:calc(var(--radius)*.8);
+  --radius-lg:var(--radius);--radius-xl:calc(var(--radius)*1.4);
+  --shadow-xs:0 1px 2px 0 rgba(0,0,0,.05);
+  --shadow-sm:0 1px 3px 0 rgba(0,0,0,.1),0 1px 2px -1px rgba(0,0,0,.1);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -4px rgba(0,0,0,.1);
+  --font-sans:ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+  --font-serif:ui-serif,Georgia,Cambria,"Times New Roman",Times,serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  --ease:cubic-bezier(.4,0,.2,1)}
+:root{--background:#ffffff;--foreground:#0a0a0a;--card:#ffffff;--card-foreground:#0a0a0a;--primary:#171717;--primary-foreground:#fafafa;--secondary:#f5f5f5;--secondary-foreground:#171717;--muted:#f5f5f5;--muted-foreground:#737373;--accent:#f5f5f5;--accent-foreground:#171717;--destructive:#e7000b;--border:#e5e5e5;--input:#e5e5e5;--ring:#a1a1a1;--chart-2:#009689;--ring-50:rgba(161,161,161,0.5);--primary-90:rgba(23,23,23,0.9);--secondary-80:rgba(245,245,245,0.8);--destructive-90:rgba(231,0,11,0.9);--destructive-ring:rgba(231,0,11,0.2);--tab-fg:rgba(10,10,10,0.6);--out-bg:var(--background);--out-bd:var(--border);--out-hv:var(--accent);--bad-bg:var(--destructive);--sw-off:var(--input);--sw-thumb:var(--background);--sw-thumb-on:var(--background);--pill-bg:var(--background);--pill-bd:transparent;color-scheme:light}
+@supports (color:oklch(0 0 0)){:root{--background:oklch(1 0 0);--foreground:oklch(0.145 0 0);--card:oklch(1 0 0);--card-foreground:oklch(0.145 0 0);--primary:oklch(0.205 0 0);--primary-foreground:oklch(0.985 0 0);--secondary:oklch(0.97 0 0);--secondary-foreground:oklch(0.205 0 0);--muted:oklch(0.97 0 0);--muted-foreground:oklch(0.556 0 0);--accent:oklch(0.97 0 0);--accent-foreground:oklch(0.205 0 0);--destructive:oklch(0.577 0.245 27.325);--border:oklch(0.922 0 0);--input:oklch(0.922 0 0);--ring:oklch(0.708 0 0);--chart-2:oklch(0.6 0.118 184.704);--ring-50:oklch(0.708 0 0 / 50%);--primary-90:oklch(0.205 0 0 / 90%);--secondary-80:oklch(0.97 0 0 / 80%);--destructive-90:oklch(0.577 0.245 27.325 / 90%);--destructive-ring:oklch(0.577 0.245 27.325 / 20%);--tab-fg:oklch(0.145 0 0 / 60%);}}
+@media (prefers-color-scheme:dark){
+:root{--background:#0a0a0a;--foreground:#fafafa;--card:#171717;--card-foreground:#fafafa;--primary:#e5e5e5;--primary-foreground:#171717;--secondary:#262626;--secondary-foreground:#fafafa;--muted:#262626;--muted-foreground:#a1a1a1;--accent:#262626;--accent-foreground:#fafafa;--destructive:#ff6467;--border:rgba(255,255,255,0.1);--input:rgba(255,255,255,0.15);--ring:#737373;--chart-2:#00bc7d;--ring-50:rgba(115,115,115,0.5);--primary-90:rgba(229,229,229,0.9);--secondary-80:rgba(38,38,38,0.8);--destructive-90:rgba(255,100,103,0.9);--destructive-ring:rgba(255,100,103,0.4);--input-30:rgba(255,255,255,0.045);--input-50:rgba(255,255,255,0.075);--input-80:rgba(255,255,255,0.12);--bad-bg:rgba(255,100,103,0.6);--out-bg:var(--input-30);--out-bd:var(--input);--out-hv:var(--input-50);--sw-off:var(--input-80);--sw-thumb:var(--foreground);--sw-thumb-on:var(--primary-foreground);--pill-bg:var(--input-30);--pill-bd:var(--input);--tab-fg:var(--muted-foreground);color-scheme:dark}
+@supports (color:oklch(0 0 0)){:root{--background:oklch(0.145 0 0);--foreground:oklch(0.985 0 0);--card:oklch(0.205 0 0);--card-foreground:oklch(0.985 0 0);--primary:oklch(0.922 0 0);--primary-foreground:oklch(0.205 0 0);--secondary:oklch(0.269 0 0);--secondary-foreground:oklch(0.985 0 0);--muted:oklch(0.269 0 0);--muted-foreground:oklch(0.708 0 0);--accent:oklch(0.269 0 0);--accent-foreground:oklch(0.985 0 0);--destructive:oklch(0.704 0.191 22.216);--border:oklch(1 0 0 / 10%);--input:oklch(1 0 0 / 15%);--ring:oklch(0.556 0 0);--chart-2:oklch(0.696 0.17 162.48);--ring-50:oklch(0.556 0 0 / 50%);--primary-90:oklch(0.922 0 0 / 90%);--secondary-80:oklch(0.269 0 0 / 80%);--destructive-90:oklch(0.704 0.191 22.216 / 90%);--destructive-ring:oklch(0.704 0.191 22.216 / 40%);--input-30:oklch(1 0 0 / 4.5%);--input-50:oklch(1 0 0 / 7.5%);--input-80:oklch(1 0 0 / 12%);--bad-bg:oklch(0.704 0.191 22.216 / 60%);}}}
+
+*,::before,::after{box-sizing:border-box;border:0 solid var(--border);outline-color:var(--ring-50);-webkit-tap-highlight-color:transparent}
+body{margin:0 auto;max-width:480px;padding:16px 16px 40px;background:var(--background);color:var(--foreground);
+  font:16px/24px var(--font-sans);-webkit-font-smoothing:antialiased}
+p,h1,h2,h3{margin:0}
+h1{font:500 26px/30px var(--font-serif);letter-spacing:-.025em}
+h2{font-size:16px;line-height:1;font-weight:600}
+.desc{font-size:14px;line-height:20px;color:var(--muted-foreground)}
+.xs{font-size:12px;line-height:16px}
+.lbl{font-size:14px;line-height:1;font-weight:500}
+button{font:inherit;color:inherit;touch-action:manipulation}
+button:not(:disabled){cursor:pointer}
+.err{color:var(--destructive)}
 .hide{display:none}
-.main{width:100%;border:0;border-radius:12px;padding:16px;font:inherit;font-weight:700;background:var(--acc);color:var(--on)}
-.main.stop{background:var(--stop);color:#fff}
-.kill{width:100%;margin-top:10px;border:1px solid var(--stop);color:var(--stop);background:none;border-radius:12px;padding:12px;font:inherit}
-button:disabled{opacity:.5}
-button:focus-visible,input:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
-pre{margin:0;font-size:12px;color:var(--mute);white-space:pre-wrap;word-break:break-word}
+
+/* card: gap-6 py-6 px-6 rounded-xl shadow-sm */
+.card{display:flex;flex-direction:column;gap:24px;padding:24px;margin-bottom:16px;background:var(--card);color:var(--card-foreground);
+  border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm)}
+.ch{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.ch>div:first-child{display:grid;gap:8px;min-width:0}
+.col{display:grid;gap:20px}
+.sp{display:flex;align-items:center;justify-content:space-between;gap:12px}
+
+/* istilah teknis: tautan bergaris bawah yang membuka dialog */
+.term{display:inline;padding:0;background:none;color:var(--foreground);font:inherit;text-decoration:underline;
+  text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--muted-foreground)}
+
+/* badge outline: rounded-full px-2 py-0.5 text-xs font-medium */
+.badge{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:none;width:fit-content;padding:2px 8px;
+  border:1px solid var(--border);border-radius:9999px;font-size:12px;line-height:16px;font-weight:500;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:9999px;background:var(--muted-foreground);transition:background-color .2s}
+.dot.ok{background:var(--chart-2)}.dot.err{background:var(--destructive)}
+
+/* button: h-9 px-4 py-2 rounded-md text-sm font-medium shadow-xs, ring 3px ring/50 saat fokus */
+.btn{display:inline-flex;flex:none;align-items:center;justify-content:center;gap:8px;height:36px;padding:8px 16px;
+  border:1px solid transparent;border-radius:var(--radius-md);background:var(--primary);color:var(--primary-foreground);
+  font-size:14px;line-height:20px;font-weight:500;white-space:nowrap;box-shadow:var(--shadow-xs);outline:none;
+  transition:all .15s var(--ease)}
+.btn:focus-visible{border-color:var(--ring);box-shadow:var(--shadow-xs),0 0 0 3px var(--ring-50)}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn:disabled{pointer-events:none;opacity:.5}
+.btn.full{width:100%}
+.btn.lg{height:40px;padding:8px 24px}
+.btn.sm{height:32px;gap:6px;padding:0 12px}
+.btn.sec{background:var(--secondary);color:var(--secondary-foreground)}
+.btn.out{background:var(--out-bg);border-color:var(--out-bd);color:var(--foreground)}
+.btn.bad{background:var(--bad-bg);color:#fff}
+.btn.bad:focus-visible{box-shadow:var(--shadow-xs),0 0 0 3px var(--destructive-ring)}
+.spin{display:none;flex:none;width:16px;height:16px;animation:spin 1s linear infinite}
+.busy .spin{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* slider: track h-1.5 bg-muted, thumb size-4 putih, ring 4px ring/50 saat hover, fokus dan geser */
+.slider{position:relative;height:16px;--r:0}
+.track{position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:9999px;background:var(--muted);
+  overflow:hidden;pointer-events:none}
+.range{position:absolute;left:0;top:0;bottom:0;width:calc(8px + (100% - 16px) * var(--r));background:var(--primary)}
+.thumb{position:absolute;top:0;left:calc(8px + (100% - 16px) * var(--r));width:16px;height:16px;margin-left:-8px;
+  border:1px solid var(--primary);border-radius:9999px;background:#fff;box-shadow:var(--shadow-sm);outline:none;touch-action:none;
+  transition:color .15s var(--ease),box-shadow .15s var(--ease)}
+.thumb::before{content:"";position:absolute;inset:-14px}
+.thumb:focus-visible,.drag .thumb{box-shadow:var(--shadow-sm),0 0 0 4px var(--ring-50)}
+.val{font-size:16px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}
+.val small{font-weight:400;color:var(--muted-foreground);margin-left:1px}
+
+/* switch: h-[1.15rem] w-8, thumb size-4 bergeser calc(100%-2px) */
+.sw{position:relative;display:inline-flex;flex:none;align-items:center;width:32px;height:18.4px;padding:0;
+  border:1px solid transparent;border-radius:9999px;background:var(--sw-off);box-shadow:var(--shadow-xs);outline:none;
+  transition:all .15s var(--ease)}
+.sw::before{content:"";position:absolute;inset:-13px -8px}
+.sw::after{content:"";display:block;width:16px;height:16px;border-radius:9999px;background:var(--sw-thumb);
+  transition:transform .15s var(--ease)}
+.sw[aria-checked=true]{background:var(--primary)}
+.sw[aria-checked=true]::after{background:var(--sw-thumb-on);transform:translateX(14px)}
+.sw:focus-visible{border-color:var(--ring);box-shadow:var(--shadow-xs),0 0 0 3px var(--ring-50)}
+.swrow{padding:16px;border:1px solid var(--border);border-radius:var(--radius-md)}
+
+/* tabs: list h-9 p-[3px] rounded-lg bg-muted, trigger rounded-md, penanda aktif bergeser mulus */
+.tabs{position:relative;display:grid;grid-template-columns:repeat(var(--n),1fr);height:36px;padding:3px;
+  border-radius:var(--radius-lg);background:var(--muted);color:var(--muted-foreground)}
+.pill{position:absolute;top:3px;bottom:3px;left:3px;width:calc((100% - 6px) / var(--n));border:1px solid var(--pill-bd);
+  border-radius:var(--radius-md);background:var(--pill-bg);box-shadow:var(--shadow-sm);transform:translateX(calc(var(--i) * 100%))}
+.ready .pill{transition:transform .32s cubic-bezier(.32,.72,0,1)}
+.tabs button{position:relative;z-index:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:4px 8px;
+  border:1px solid transparent;border-radius:var(--radius-md);background:none;color:var(--tab-fg);font-size:14px;line-height:20px;
+  font-weight:500;white-space:nowrap;outline:none;transition:all .15s var(--ease)}
+.tabs button[aria-checked=true]{color:var(--foreground)}
+.tabs button:focus-visible{border-color:var(--ring);box-shadow:0 0 0 3px var(--ring-50)}
+
+/* bagian tambahan: tinggi dan opasitas beranimasi */
+.cl{display:grid;grid-template-rows:0fr;opacity:0}
+.ready .cl{transition:grid-template-rows .32s cubic-bezier(.32,.72,0,1),opacity .24s ease}
+.cl.open{grid-template-rows:1fr;opacity:1}
+.cw{min-height:0;overflow:hidden;visibility:hidden;margin:0 -4px;padding:0 4px}
+.ready .cw{transition:visibility 0s .32s}
+.cl.open>.cw{visibility:visible;transition-delay:0s}
+.in{display:grid;gap:16px;padding:24px 0 4px}
+
+/* textarea: min-h-16 rounded-md border-input px-3 py-2 shadow-xs, text-sm (hp android tidak auto-zoom) */
+textarea{display:block;width:100%;min-height:64px;padding:8px 12px;resize:none;border:1px solid var(--input);
+  border-radius:var(--radius-md);background:transparent;color:var(--foreground);box-shadow:var(--shadow-xs);outline:none;
+  font:14px/20px var(--font-sans);overflow-wrap:break-word;field-sizing:content;transition:color .15s var(--ease),box-shadow .15s var(--ease)}
+@media (prefers-color-scheme:dark){textarea{background:var(--input-30)}}
+textarea::placeholder{color:var(--muted-foreground)}
+textarea:focus-visible{border-color:var(--ring);box-shadow:var(--shadow-xs),0 0 0 3px var(--ring-50)}
+textarea[aria-invalid=true]{border-color:var(--destructive);box-shadow:var(--shadow-xs),0 0 0 3px var(--destructive-ring)}
+
+/* dialog: overlay bg-black/50, konten rounded-lg border p-6 gap-4 shadow-lg, zoom-in-95 dan fade 200ms */
+.ov{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:rgba(0,0,0,.5);opacity:0;visibility:hidden;transition:opacity .2s,visibility 0s .2s}
+.ov.open{opacity:1;visibility:visible;transition-delay:0s}
+.dlg{position:relative;display:grid;gap:16px;width:100%;max-width:512px;padding:24px;background:var(--background);
+  border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);opacity:0;transform:scale(.95);
+  transition:opacity .2s,transform .2s}
+.ov.open .dlg{opacity:1;transform:none}
+.dh{display:flex;flex-direction:column;gap:8px}
+.dlg h3{font-size:18px;line-height:1;font-weight:600;padding-right:24px}
+.dlg .dh p{font-size:14px;line-height:20px}
+#dD{display:grid;gap:8px}
+.dlg .x{position:absolute;top:16px;right:16px;display:grid;place-items:center;width:16px;height:16px;padding:0;
+  border-radius:var(--radius-xs);background:none;color:inherit;opacity:.7;outline:none;transition:opacity .15s}
+.dlg .x::before{content:"";position:absolute;inset:-12px}
+.dlg .x:focus-visible{box-shadow:0 0 0 2px var(--background),0 0 0 4px var(--ring)}
+.foot{display:flex;flex-direction:column-reverse;gap:8px}
+@media (min-width:640px){.foot{flex-direction:row;justify-content:flex-end}}
+
+pre{margin:0;font:12px/18px var(--font-mono);color:var(--muted-foreground);white-space:pre-wrap;word-break:break-word}
+
+/* hover hanya pada perangkat yang benar-benar punya kursor, seperti varian hover di tailwind v4 */
+@media (hover:hover){
+  .btn:hover:not(:disabled){background:var(--primary-90)}
+  .btn.sec:hover:not(:disabled){background:var(--secondary-80)}
+  .btn.out:hover:not(:disabled){background:var(--out-hv);color:var(--accent-foreground)}
+  .btn.bad:hover:not(:disabled){background:var(--destructive-90)}
+  .tabs button:hover{color:var(--foreground)}
+  .thumb:hover{box-shadow:var(--shadow-sm),0 0 0 4px var(--ring-50)}
+  .dlg .x:hover{opacity:1}
+  .term:hover{text-decoration-color:var(--foreground)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2s}}
 </style>
 </head>
 <body>
-<h1>Sensitivity</h1>
-<p class="state">Status: <b id="state">memeriksa…</b></p>
 
 <div class="card">
-  <h2>Sensitivitas</h2>
-  <div class="pair">
-    <div><div class="cap">Horizontal (kiri-kanan)</div><div class="read"><span data-show="sens_h">1.0</span><small>×</small></div>
-      <input type="range" data-k="sens_h" min="1" max="5" step="0.1" aria-label="Sensitivitas horizontal"></div>
-    <div><div class="cap">Vertikal (atas-bawah)</div><div class="read"><span data-show="sens_v">1.0</span><small>×</small></div>
-      <input type="range" data-k="sens_v" min="1" max="5" step="0.1" aria-label="Sensitivitas vertikal"></div>
+  <div class="ch">
+    <div><h1>Sensitivity</h1><p class="desc">Peningkat sensitivitas sentuhan tanpa akses root.</p></div>
+    <span class="badge"><i class="dot" id="dot"></i><span id="badge" aria-live="polite">…</span></span>
   </div>
-  <div class="row sub"><label for="link">Samakan horizontal &amp; vertikal</label><input id="link" type="checkbox" role="switch"></div>
-</div>
-
-<div class="card">
-  <h2>Bagian layar</h2>
-  <div class="seg" data-k="zone">
-    <button data-v="0">Global</button><button data-v="1">Kiri</button><button data-v="2">Kanan</button>
-  </div>
-  <p class="hint">Di luar area yang dipilih, sentuhan tidak diubah sama sekali.</p>
-  <div id="orientBox" class="sub hide">
-    <div class="cap">Posisi landscape HP</div>
-    <div class="seg" data-k="orient"><button data-v="1">Landscape 90°</button><button data-v="3">Landscape 270°</button></div>
-    <p class="hint">Kalau zona kiri/kanan terasa kebalik, ganti pilihan ini.</p>
+  <div class="col" style="gap:12px">
+    <p class="desc" id="detail">Memeriksa status layanan…</p>
+    <button class="btn lg full" id="toggle"><svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="status" aria-label="Memuat"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span id="toggleT">Aktifkan</span></button>
   </div>
 </div>
 
 <div class="card">
-  <div class="row"><div><h2 style="margin:0">Penstabil gerakan</h2><div class="cap">Menghaluskan getaran jari (One Euro Filter)</div></div>
-    <input type="checkbox" role="switch" data-k="smooth" aria-label="Penstabil gerakan"></div>
-  <div id="smoothBox" class="sub hide">
-    <div class="row"><span>Kekuatan</span><b><span data-show="strength">40</span>%</b></div>
-    <input type="range" data-k="strength" min="1" max="100" step="1" aria-label="Kekuatan">
-    <p class="hint" style="margin:0 0 10px">Makin tinggi, gerakan pelan makin halus (tapi terasa lebih berat).</p>
-    <div class="row"><span>Responsivitas</span><b><span data-show="resp">85</span>%</b></div>
-    <input type="range" data-k="resp" min="1" max="100" step="1" aria-label="Responsivitas">
-    <p class="hint" style="margin:0">Makin tinggi, tarikan cepat makin langsung (lebih sedikit delay).</p>
+  <div class="ch"><div><h2>Sensitivitas</h2>
+    <p class="desc"><button class="term" data-t="pengali">Pengali</button> gerakan sentuhan per sumbu, rentang 1.0× hingga 5.0×.</p></div></div>
+  <div class="col">
+    <div class="col" style="gap:14px">
+      <div class="sp"><span class="lbl"><button class="term" data-t="x">Sumbu X</button></span><span class="val"><span data-show="sens_h">1.0</span><small>×</small></span></div>
+      <div class="slider" data-k="sens_h" data-min="1" data-max="5" data-step="0.1"><div class="track"><div class="range"></div></div><div class="thumb" role="slider" tabindex="0" aria-label="Sensitivitas sumbu X"></div></div>
+    </div>
+    <div class="col" style="gap:14px">
+      <div class="sp"><span class="lbl"><button class="term" data-t="y">Sumbu Y</button></span><span class="val"><span data-show="sens_v">1.0</span><small>×</small></span></div>
+      <div class="slider" data-k="sens_v" data-min="1" data-max="5" data-step="0.1"><div class="track"><div class="range"></div></div><div class="thumb" role="slider" tabindex="0" aria-label="Sensitivitas sumbu Y"></div></div>
+    </div>
+    <div class="sp swrow"><label class="lbl" id="linkL">Sinkronkan sumbu X dan Y</label>
+      <button class="sw" id="link" role="switch" aria-labelledby="linkL"></button></div>
   </div>
 </div>
 
-<div class="card row">
-  <div><h2 style="margin:0">Kunci di tepi layar</h2><div class="cap">Biasanya mati: gerakan boleh melewati tepi layar supaya geseran nggak berhenti sebelum jari sampai.</div></div>
-  <input type="checkbox" role="switch" data-k="clamp" aria-label="Kunci di tepi layar">
+<div class="card">
+  <div class="ch"><div><h2>Zona sentuh</h2>
+    <p class="desc">Pengali hanya diterapkan pada <button class="term" data-t="zona">zona</button> terpilih. Sentuhan di luar zona tidak dimodifikasi.</p></div></div>
+  <div>
+    <div class="tabs" role="radiogroup" aria-label="Zona sentuh" data-k="zone">
+      <button role="radio" data-v="0">Global</button><button role="radio" data-v="1">Kiri</button><button role="radio" data-v="2">Kanan</button>
+    </div>
+    <div class="cl" id="orientBox"><div class="cw"><div class="in" style="gap:12px">
+      <p class="lbl"><button class="term" data-t="rotasi">Rotasi layar</button></p>
+      <div class="tabs" role="radiogroup" aria-label="Rotasi layar" data-k="orient">
+        <button role="radio" data-v="1">Landscape 90°</button><button role="radio" data-v="3">Landscape 270°</button>
+      </div>
+      <p class="desc xs">Ubah opsi ini apabila pembagian zona kiri dan kanan terbalik.</p>
+    </div></div></div>
+  </div>
 </div>
 
-<div class="card row">
-  <div><h2 style="margin:0">Hanya di Free Fire / Max</h2><div class="cap">Di luar game, sentuhan normal sepenuhnya.</div></div>
-  <input type="checkbox" role="switch" data-k="filter" aria-label="Hanya di Free Fire">
+<div class="card">
+  <div class="ch"><div><h2>Penstabil gerakan</h2>
+    <p class="desc">Meredam getaran jari menggunakan <button class="term" data-t="oneeuro">One Euro Filter</button>.</p></div>
+    <button class="sw" role="switch" data-k="smooth" aria-label="Penstabil gerakan"></button></div>
+  <div class="cl" id="smoothBox" style="margin-top:-24px"><div class="cw"><div class="in">
+    <div class="col" style="gap:14px">
+      <div class="sp"><span class="lbl"><button class="term" data-t="kekuatan">Kekuatan</button></span><span class="val"><span data-show="strength">40</span><small>%</small></span></div>
+      <div class="slider" data-k="strength" data-min="1" data-max="100" data-step="1"><div class="track"><div class="range"></div></div><div class="thumb" role="slider" tabindex="0" aria-label="Kekuatan peredaman"></div></div>
+      <p class="desc xs">Nilai tinggi memperhalus gerakan lambat, dengan konsekuensi respons terasa lebih berat.</p>
+    </div>
+    <div class="col" style="gap:14px">
+      <div class="sp"><span class="lbl"><button class="term" data-t="resp">Responsivitas</button></span><span class="val"><span data-show="resp">85</span><small>%</small></span></div>
+      <div class="slider" data-k="resp" data-min="1" data-max="100" data-step="1"><div class="track"><div class="range"></div></div><div class="thumb" role="slider" tabindex="0" aria-label="Responsivitas"></div></div>
+      <p class="desc xs">Nilai tinggi membuat tarikan cepat diteruskan lebih langsung, dengan penundaan minimal.</p>
+    </div>
+  </div></div></div>
 </div>
 
-<button class="main" id="toggle">Aktifkan</button>
-<button class="kill" id="kill">Matikan sekarang</button>
-<div class="card" style="margin-top:12px"><pre id="log">Perubahan berlaku mulai sentuhan berikutnya.</pre></div>
+<div class="card">
+  <div class="ch"><div><h2>Filter package</h2>
+    <p class="desc">Boost hanya aktif saat salah satu <button class="term" data-t="package">package</button> pada daftar berada di <button class="term" data-t="fg">foreground</button>.</p></div>
+    <button class="sw" role="switch" data-k="filter" aria-label="Filter package"></button></div>
+  <div style="margin-top:-24px">
+    <div class="cl" id="pkBox"><div class="cw"><div class="in" style="gap:8px">
+      <label class="lbl" for="pk">Daftar package</label>
+      <textarea id="pk" rows="3" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="pkHint pkErr"></textarea>
+      <p class="err xs hide" id="pkErr" role="alert"></p>
+      <div class="sp" style="align-items:flex-start;margin-top:4px"><p class="desc xs" id="pkHint">Pisahkan dengan koma.</p>
+        <button class="btn out sm" id="pkReset">Atur ulang</button></div>
+    </div></div></div>
+    <div class="cl" id="pkOff"><div class="cw"><div class="in"><p class="desc">Filter nonaktif: boost berlaku pada semua aplikasi selama layanan berjalan.</p></div></div></div>
+  </div>
+</div>
+
+<button class="btn bad lg full" id="kill" style="margin-bottom:16px"><svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="status" aria-label="Memuat"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Hentikan darurat</span></button>
+<div class="card" style="padding:16px"><pre id="log">Perubahan diterapkan mulai sentuhan berikutnya.</pre></div>
+
+<div class="ov" id="ov" aria-hidden="true">
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dT" aria-describedby="dD">
+    <button class="x" id="dClose" aria-label="Tutup"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    <div class="dh"><h3 id="dT"></h3><div id="dD"></div></div>
+    <div class="foot"><button class="btn lg" id="dOk">Mengerti</button></div>
+  </div>
+</div>
 
 <script>
 const DIR='/data/user_de/0/com.android.shell/axeron/plugins/sensit';
-const cfg={sens_h:1,sens_v:1,zone:0,orient:1,smooth:0,strength:40,resp:85,filter:1,clamp:0};
-let link=true, running=false, busy=false, state='';
+const DEF_PK='com.dts.freefireth,com.dts.freefiremax';
+const PK_RE=/^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/;
+// kunci sens_h dan sens_v tetap, di UI keduanya adalah sumbu X dan Y
+const cfg={sens_h:1,sens_v:1,zone:0,orient:1,smooth:0,strength:40,resp:85,filter:1,pkgs:DEF_PK};
+let link=true, running=false, busy=false, busyText='', state='', pkDirty=false;
 const $=id=>document.getElementById(id);
 const all=sel=>document.querySelectorAll(sel);
+
+const TERMS={
+  x:['Sumbu X','Arah gerak jari ke kiri dan kanan saat HP dalam posisi landscape.','Menaikkan nilainya membuat geseran mendatar terasa lebih jauh, sehingga jari tidak perlu bergeser sepanjang itu.'],
+  y:['Sumbu Y','Arah gerak jari ke atas dan bawah saat HP dalam posisi landscape.','Pada game tembak seperti Free Fire, sumbu ini paling berpengaruh pada tarikan ke atas untuk membidik kepala.'],
+  pengali:['Pengali','Angka yang mengalikan jarak geser jari sebelum dibaca oleh game.','Contoh: 2.0× berarti geseran sejauh 1 cm dibaca seperti 2 cm. Nilai 1.0× berarti tidak ada perubahan.'],
+  zona:['Zona sentuh','Layar dibagi dua pada titik tengahnya. Global berlaku di seluruh layar, Kiri atau Kanan hanya di sisi itu.','Pilih sisi tempat jari Anda mengarahkan bidikan agar sisi lain, misalnya tombol gerak, tetap normal.'],
+  rotasi:['Rotasi layar','Menentukan sisi mana yang dianggap kiri, karena arah landscape 90° dan 270° saling berlawanan.','Layanan tidak membaca rotasi secara otomatis. Jika zona kiri dan kanan terasa terbalik, pindah ke opsi lainnya.'],
+  oneeuro:['One Euro Filter','Filter penghalus yang meredam getaran kecil saat jari nyaris diam, lalu melonggar saat jari bergerak cepat.','Akibatnya bidikan lebih stabil ketika diam, sementara tarikan cepat tidak terasa tertunda. Filter bekerja pada posisi asli sebelum dikalikan, sehingga getaran tidak ikut membesar.'],
+  kekuatan:['Kekuatan peredaman','Seberapa keras getaran pada gerakan lambat diredam.','Nilai tinggi menghasilkan gerakan lebih halus, tetapi gerakan pelan terasa sedikit lebih berat. Bawaan: 40%.'],
+  resp:['Responsivitas','Seberapa cepat peredaman dilepas ketika jari bergerak cepat.','Nilai tinggi membuat tarikan cepat terasa langsung dengan penundaan minimal. Bawaan: 85%.'],
+  package:['Package','Nama unik sebuah aplikasi di Android, misalnya com.dts.freefireth (Free Fire) dan com.dts.freefiremax (Free Fire MAX).','Untuk mencari package aplikasi lain: buka halaman aplikasi di Play Store lalu lihat bagian id= pada alamatnya.'],
+  fg:['Foreground','Aplikasi yang sedang tampil dan digunakan di layar. Aplikasi yang terbuka tetapi tidak tampil berada di background.','Di luar foreground aplikasi pada daftar, boost nonaktif dan sentuhan sepenuhnya normal.']
+};
+let lastFocus=null;
+function openDlg(k){
+  const t=TERMS[k]; if(!t)return;
+  $('dT').textContent=t[0];
+  $('dD').innerHTML='';
+  t.slice(1).forEach(s=>{const p=document.createElement('p');p.textContent=s;if(p.previousSibling||$('dD').children.length)p.className='desc';$('dD').appendChild(p);});
+  lastFocus=document.activeElement;
+  $('ov').classList.add('open');$('ov').setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+  setTimeout(()=>$('dOk').focus(),30);
+}
+function closeDlg(){
+  $('ov').classList.remove('open');$('ov').setAttribute('aria-hidden','true');
+  document.body.style.overflow='';
+  if(lastFocus&&lastFocus.focus)lastFocus.focus();
+}
+document.addEventListener('click',e=>{const b=e.target.closest('.term');if(b)openDlg(b.dataset.t);});
+$('dOk').addEventListener('click',closeDlg);
+$('dClose').addEventListener('click',closeDlg);
+$('ov').addEventListener('click',e=>{if(e.target===$('ov'))closeDlg();});
+document.addEventListener('keydown',e=>{
+  if(!$('ov').classList.contains('open'))return;
+  if(e.key==='Escape')closeDlg();
+  if(e.key==='Tab'){e.preventDefault();$('dOk').focus();}
+});
 
 function run(cmd){
   return new Promise(res=>{
@@ -107,21 +313,56 @@ function run(cmd){
 }
 const log=t=>{$('log').textContent=t||'—';};
 
+// "a, b;c" -> {v:'a,b,c',n:3} atau {err:'...'}, aturan yang sama dengan daemon tetapi lebih ketat
+function parsePk(s){
+  const list=[...new Set(s.split(/[\s,;]+/).filter(Boolean))];
+  if(!list.length)return{err:'Isi minimal satu package.'};
+  const bad=list.find(p=>!PK_RE.test(p)||p.length>127);
+  if(bad)return{err:'Package tidak valid: '+bad};
+  if(list.length>16)return{err:'Maksimal 16 package.'};
+  const v=list.join(',');
+  return v.length>1000?{err:'Daftar terlalu panjang.'}:{v,n:list.length};
+}
+function pkErr(msg){
+  $('pkErr').textContent=msg||'';
+  $('pkErr').classList.toggle('hide',!msg);
+  $('pk').setAttribute('aria-invalid',msg?'true':'false');
+}
+
 function render(){
   all('[data-show]').forEach(e=>{const k=e.dataset.show;e.textContent=k.startsWith('sens')?cfg[k].toFixed(1):cfg[k];});
-  all('input[type=range][data-k]').forEach(e=>{e.value=cfg[e.dataset.k];});
-  all('input[type=checkbox][data-k]').forEach(e=>{e.checked=!!cfg[e.dataset.k];});
-  all('.seg[data-k]').forEach(g=>g.querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.v===cfg[g.dataset.k])));
-  $('link').checked=link;
-  $('orientBox').classList.toggle('hide',cfg.zone===0);
-  $('smoothBox').classList.toggle('hide',!cfg.smooth);
-  $('state').textContent=!running?'Mati':state.startsWith('error:')?'Error: '+state.slice(6):state==='active'?'Aktif (boost menyala)':cfg.filter?'Siaga, menunggu Free Fire':'Siaga';
-  $('toggle').textContent=running?'Nonaktifkan':'Aktifkan';
-  $('toggle').classList.toggle('stop',running);
+  all('.slider').forEach(s=>{
+    const k=s.dataset.k,mn=+s.dataset.min,mx=+s.dataset.max,th=s.querySelector('.thumb');
+    s.style.setProperty('--r',(cfg[k]-mn)/(mx-mn));
+    th.setAttribute('aria-valuemin',mn);th.setAttribute('aria-valuemax',mx);th.setAttribute('aria-valuenow',cfg[k]);
+  });
+  all('.sw[data-k]').forEach(e=>e.setAttribute('aria-checked',cfg[e.dataset.k]?'true':'false'));
+  all('.tabs[data-k]').forEach(g=>{
+    const bs=[...g.querySelectorAll('button')];
+    g.style.setProperty('--n',bs.length);
+    bs.forEach((b,i)=>{const on=+b.dataset.v===cfg[g.dataset.k];b.setAttribute('aria-checked',on?'true':'false');if(on)g.style.setProperty('--i',i);});
+  });
+  $('link').setAttribute('aria-checked',link?'true':'false');
+  $('orientBox').classList.toggle('open',cfg.zone!==0);
+  $('smoothBox').classList.toggle('open',!!cfg.smooth);
+  $('pkBox').classList.toggle('open',!!cfg.filter);
+  $('pkOff').classList.toggle('open',!cfg.filter);
+  if(!pkDirty&&document.activeElement!==$('pk'))$('pk').value=cfg.pkgs;
+  $('pkHint').textContent='Pisahkan dengan koma. Saat ini '+cfg.pkgs.split(',').length+' package.';
+  const err=state.startsWith('error:'), act=running&&state==='active';
+  $('badge').textContent=!running?'Mati':err?'Error':act?'Aktif':'Siaga';
+  $('dot').className='dot'+(!running?'':err?' err':act?' ok':'');
+  $('detail').textContent=!running?'Layanan tidak berjalan. Sentuhan tidak dimodifikasi.'
+    :err?'Kesalahan: '+state.slice(6)
+    :act?'Boost sedang diterapkan pada layar sentuh.'
+    :cfg.filter?'Menunggu salah satu aplikasi pada daftar berada di foreground.':'Layanan siaga.';
+  $('toggleT').textContent=busy?busyText:running?'Nonaktifkan':'Aktifkan';
+  $('toggle').classList.toggle('sec',running&&!busy);
+  $('toggle').classList.toggle('busy',busy);
   $('toggle').disabled=busy;
 }
 
-// atomic write: the daemon reloads on rename and never sees a half-written file
+// penulisan atomik: daemon memuat ulang saat rename dan tidak pernah membaca berkas setengah jadi
 function saveCfg(){
   const body=Object.entries(cfg).map(([k,v])=>k+'='+(k.startsWith('sens')?v.toFixed(1):v)).join('\\n');
   return run(`printf '${body}\\n' > ${DIR}/config.tmp && mv ${DIR}/config.tmp ${DIR}/config`);
@@ -134,45 +375,86 @@ async function refresh(full=true){
     const k=l.slice(0,i), v=l.slice(i+1).trim();
     if(k==='running')running=v==='1';
     else if(k==='state')state=v;
-    else if(full&&k in cfg&&v!==''&&!isNaN(parseFloat(v)))cfg[k]=parseFloat(v);
+    else if(!full)return;
+    else if(k==='pkgs'){const p=parsePk(v);if(p.v)cfg.pkgs=p.v;}
+    else if(k in cfg&&v!==''&&!isNaN(parseFloat(v)))cfg[k]=parseFloat(v);
   });
   if(full)link=cfg.sens_h===cfg.sens_v;
   if(r.errno!==0&&r.stderr)log(r.stderr);
   render();
 }
-async function guarded(fn){
+async function guarded(txt,fn){
   if(busy)return;
-  busy=true;render();
+  busy=true;busyText=txt;render();
   try{await fn();}finally{busy=false;await refresh(false);}
 }
-const start=()=>guarded(async()=>{
+const start=()=>guarded('Mengaktifkan…',async()=>{
   await saveCfg();
   const r=await run(`chmod 755 ${DIR}/system/bin/sensit; ${DIR}/system/bin/sensit --daemon --config ${DIR}/config --pidfile ${DIR}/sensit.pid 2>&1`);
   log((r.stdout+r.stderr).trim());
 });
-const stop=()=>guarded(async()=>{
+const stop=()=>guarded('Menonaktifkan…',async()=>{
   await run(`kill $(cat ${DIR}/sensit.pid) 2>/dev/null; rm -f ${DIR}/sensit.pid`);
-  log('Dihentikan. Sentuhan kembali normal.');
+  log('Layanan dihentikan. Sentuhan kembali normal.');
 });
 
-all('input[type=range][data-k]').forEach(e=>{
-  e.addEventListener('input',()=>{
-    const k=e.dataset.k; cfg[k]=parseFloat(e.value);
-    if(link&&k==='sens_h')cfg.sens_v=cfg.sens_h;
-    if(link&&k==='sens_v')cfg.sens_h=cfg.sens_v;
+// slider: knob digeser secara relatif terhadap posisi awal sentuhan, ketukan pada trek diabaikan
+const KNOB=16;
+all('.slider').forEach(s=>{
+  const k=s.dataset.k,mn=+s.dataset.min,mx=+s.dataset.max,st=+s.dataset.step,th=s.querySelector('.thumb');
+  let drag=false,sx=0,sv=0,tm=0;
+  const snap=v=>Math.min(mx,Math.max(mn,+(Math.round(v/st)*st).toFixed(2)));
+  const put=v=>{
+    v=snap(v); if(v===cfg[k])return;
+    cfg[k]=v;
+    if(link&&k==='sens_h')cfg.sens_v=v;
+    if(link&&k==='sens_v')cfg.sens_h=v;
     render();
+  };
+  th.addEventListener('pointerdown',e=>{
+    drag=true;sx=e.clientX;sv=cfg[k];s.classList.add('drag');
+    th.setPointerCapture(e.pointerId);e.preventDefault();th.focus({preventScroll:true});
   });
-  e.addEventListener('change',saveCfg);
+  th.addEventListener('pointermove',e=>{
+    if(!drag)return;
+    const w=s.getBoundingClientRect().width-KNOB;
+    if(w>0)put(sv+(e.clientX-sx)/w*(mx-mn));
+  });
+  const end=()=>{if(!drag)return;drag=false;s.classList.remove('drag');saveCfg();};
+  th.addEventListener('pointerup',end);
+  th.addEventListener('pointercancel',end);
+  th.addEventListener('keydown',e=>{
+    const d={ArrowLeft:-st,ArrowDown:-st,ArrowRight:st,ArrowUp:st,PageDown:-st*10,PageUp:st*10}[e.key];
+    if(d===undefined&&e.key!=='Home'&&e.key!=='End')return;
+    e.preventDefault();
+    put(e.key==='Home'?mn:e.key==='End'?mx:cfg[k]+d);
+    clearTimeout(tm);tm=setTimeout(saveCfg,300);
+  });
 });
-all('input[type=checkbox][data-k]').forEach(e=>e.addEventListener('change',()=>{cfg[e.dataset.k]=e.checked?1:0;render();saveCfg();}));
-all('.seg[data-k]').forEach(g=>g.addEventListener('click',ev=>{
-  if(ev.target.tagName!=='BUTTON')return;
-  cfg[g.dataset.k]=+ev.target.dataset.v;render();saveCfg();
+// penanda opsi terpilih, satu elemen per grup yang bergeser antar opsi
+all('.tabs').forEach(g=>{const p=document.createElement('span');p.className='pill';g.prepend(p);});
+all('.sw[data-k]').forEach(e=>e.addEventListener('click',()=>{const k=e.dataset.k;cfg[k]=cfg[k]?0:1;render();saveCfg();}));
+all('.tabs[data-k]').forEach(g=>g.addEventListener('click',ev=>{
+  const b=ev.target.closest('button'); if(!b)return;
+  cfg[g.dataset.k]=+b.dataset.v;render();saveCfg();
 }));
-$('link').addEventListener('change',e=>{link=e.target.checked;if(link)cfg.sens_v=cfg.sens_h;render();saveCfg();});
+$('link').addEventListener('click',()=>{link=!link;if(link)cfg.sens_v=cfg.sens_h;render();saveCfg();});
+
+// daftar package: divalidasi saat mengetik, disimpan hanya jika valid dan kolom kehilangan fokus
+const pk=$('pk');
+pk.addEventListener('input',()=>{pkDirty=true;const p=parsePk(pk.value);pkErr(p.err&&pk.value.trim()?p.err:'');});
+pk.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();pk.blur();}});
+pk.addEventListener('change',()=>{
+  const p=parsePk(pk.value);
+  if(p.err){pkErr(p.err);return;}
+  pkErr('');pkDirty=false;cfg.pkgs=p.v;pk.value=p.v;render();saveCfg();
+});
+$('pkReset').addEventListener('click',()=>{pkErr('');pkDirty=false;cfg.pkgs=DEF_PK;render();saveCfg();});
+
 $('toggle').addEventListener('click',()=>running?stop():start());
 $('kill').addEventListener('click',stop);
-refresh();
+// animasi diaktifkan setelah render pertama agar tampilan awal tidak bergerak
+refresh().then(()=>requestAnimationFrame(()=>requestAnimationFrame(()=>document.body.classList.add('ready'))));
 setInterval(()=>{if(!busy&&!document.hidden)refresh(false);},3000);
 </script>
 </body>

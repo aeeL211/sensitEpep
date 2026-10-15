@@ -49,6 +49,10 @@
 #define TICK_MS 3000
 #define RETRY_MS 250
 #define BITS(n) ((n) / 8 + 1)
+#define PKBUF 1024  // config value buffer for the package list
+#define MAXPK 16    // packages kept from the list, also max tracked processes
+#define PKLEN 128   // longest package name + 1
+#define DEFPK "com.dts.freefireth,com.dts.freefiremax"
 
 static volatile sig_atomic_t g_stop = 0;
 static void on_sig(int) { g_stop = 1; }
@@ -61,9 +65,11 @@ static char g_dir[256] = ".";  // plugin folder (where the config lives)
 //   zone           : 0 whole screen, 1 left half, 2 right half
 //   orient         : 1 or 3, which landscape rotation (1 = screen-left is the low raw value)
 //   smooth         : 1 = one euro filter on, strength / resp 1..100 (%)
-//   filter         : 1 = only while the game is in the foreground, 0 = always
-//   clamp          : 0 = scaled movement may pass the screen edge (default), 1 = stop at the edge
-// k, smooth, zone and clamp are fixed when a finger touches down, so a finger already on the
+//   filter         : 1 = only while one of the packages is in the foreground, 0 = always
+//   pkgs           : comma separated package names for filter=1 (letters, digits, _ and . only,
+//                    16 max), empty or invalid falls back to the two free fire packages
+// the scaled position is never clamped to the panel, so a swipe cannot stall at the edge.
+// k, smooth and zone are fixed when a finger touches down, so a finger already on the
 // screen never jumps. strength / resp apply live, the filter is continuous so nothing jumps.
 // defaults (strength 40, resp 85) come from simulating free fire style aiming: about half of
 // the resting jitter is removed while a fast flick is delayed by less than one touch frame.
@@ -71,9 +77,12 @@ struct Cfg {
   float kh = 1.0f, kv = 1.0f;
   int zone = 0, orient = 1;
   int smooth = 0, strength = 40, resp = 85;
-  int filter = 1, clamp = 0;
+  int filter = 1;
+  char pk[PKBUF] = DEFPK;
   float fcmin = 3.0f, beta = 5.0f;  // derived one euro parameters
 };
+
+static void set_pk(const char *s);  // applies the package list, see foreground detection
 
 static float clampf(float v, float lo, float hi) { return v < lo ? lo : (v > hi ? hi : v); }
 static int clampi(int v, int lo, int hi) { return v < lo ? lo : (v > hi ? hi : v); }
@@ -88,12 +97,21 @@ static void derive(Cfg &c) {
 
 static void load(const char *path, Cfg &c) {
   if (FILE *f = fopen(path, "r")) {
-    char ln[64];
+    char ln[PKBUF + 64];
+    bool cut = false;  // inside the tail of a line that did not fit the buffer
     while (fgets(ln, sizeof ln, f)) {
+      size_t n = strlen(ln);
+      bool full = n && ln[n - 1] == '\n';
+      bool skip = cut || (!full && n == sizeof ln - 1);
+      cut = !full && n == sizeof ln - 1;
+      if (skip) continue;
       char *eq = strchr(ln, '=');
       if (!eq) continue;
       *eq = 0;
-      const char *k = ln, *v = eq + 1;
+      const char *k = ln;
+      char *v = eq + 1;
+      v[strcspn(v, "\r\n")] = 0;
+      if (!strcmp(k, "pkgs")) { snprintf(c.pk, sizeof c.pk, "%s", v); continue; }
       if (*v < '0' || *v > '9') continue;  // malformed value, keep the previous one
       if (!strcmp(k, "sens_h")) c.kh = clampf((float)atof(v), 1.0f, 5.0f);
       else if (!strcmp(k, "sens_v")) c.kv = clampf((float)atof(v), 1.0f, 5.0f);
@@ -103,11 +121,11 @@ static void load(const char *path, Cfg &c) {
       else if (!strcmp(k, "strength")) c.strength = clampi(atoi(v), 1, 100);
       else if (!strcmp(k, "resp")) c.resp = clampi(atoi(v), 1, 100);
       else if (!strcmp(k, "filter")) c.filter = atoi(v) != 0;
-      else if (!strcmp(k, "clamp")) c.clamp = atoi(v) != 0;
     }
     fclose(f);
   }
   derive(c);
+  set_pk(c.pk);
 }
 
 // ---------------------------------------------------------------- state file
@@ -125,17 +143,56 @@ static void set_state(const char *s) {
 }
 
 // ---------------------------------------------------------------- foreground detection
-// no dumpsys. /proc is fully visible to the shell user (group readproc). the game's main
-// process is named after its package and the top app has oom_score_adj <= 0.
-//  - not running : every 3 s list /proc, read cmdline only for pids that are new since last tick
-//  - running     : one pread() of an already open /proc/<pid>/oom_score_adj per tick
-static const char *const kPkg[] = {"com.dts.freefireth", "com.dts.freefiremax"};
-
-static int g_adj = -1;     // fd of the game's oom_score_adj
-static int g_adj_err = 0;  // errno of the last failed open of it, 0 = fine
+// no dumpsys. /proc is fully visible to the shell user (group readproc). an app's main process is
+// named after its package and the top app has oom_score_adj <= 0.
+//  - every tick : list /proc, read cmdline only for pids that are new since the last tick
+//  - on a match : keep /proc/<pid>/oom_score_adj open, one pread() per tick (any match <= 0 = foreground)
+static char g_pk[MAXPK][PKLEN];
+static int g_pkn = 0;
+static int g_adj[MAXPK];   // open oom_score_adj fds of the running listed apps
+static int g_nadj = 0;
+static int g_adj_err = 0;  // errno of the last failed open of one, 0 = fine
 static int g_buf[3][MAXPID];
 static int *g_prev = g_buf[0], *g_snap = g_buf[1], *g_cur = g_buf[2];
 static int g_prev_n = 0;
+
+static bool pk_char(char ch) {
+  return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '_' ||
+         ch == '.';
+}
+
+// "a,b,c" -> names, blank or invalid tokens are skipped, returns how many were kept
+static int parse_pk(const char *s, char out[][PKLEN]) {
+  int n = 0;
+  while (*s && n < MAXPK) {
+    while (*s == ',' || *s == ' ' || *s == '\t') s++;
+    const char *t = s;
+    while (*s && *s != ',') s++;
+    const char *e = s;
+    while (e > t && (e[-1] == ' ' || e[-1] == '\t')) e--;
+    int len = (int)(e - t);
+    bool ok = len > 0 && len < PKLEN;
+    for (int i = 0; ok && i < len; i++) ok = pk_char(t[i]);
+    if (ok) { memcpy(out[n], t, (size_t)len); out[n][len] = 0; n++; }
+  }
+  return n;
+}
+
+// a changed list drops the tracked processes and forgets the seen pids, so /proc is rescanned
+static void set_pk(const char *s) {
+  char tmp[MAXPK][PKLEN] = {};
+  int n = parse_pk(s, tmp);
+  if (!n) n = parse_pk(DEFPK, tmp);
+  bool same = n == g_pkn;
+  for (int i = 0; same && i < n; i++) same = !strcmp(tmp[i], g_pk[i]);
+  if (same) return;
+  memcpy(g_pk, tmp, sizeof g_pk);
+  g_pkn = n;
+  for (int i = 0; i < g_nadj; i++) close(g_adj[i]);
+  g_nadj = 0;
+  g_adj_err = 0;
+  g_prev_n = 0;
+}
 
 static int cmp_int(const void *a, const void *b) { return *(const int *)a - *(const int *)b; }
 
@@ -154,9 +211,9 @@ static int read_pids(int *out, int max) {
   return n;
 }
 
-// 1 = target game, 0 = not it (final), -1 = not renamed yet, look again next tick
+// 1 = listed app, 0 = not it (final), -1 = not renamed yet, look again next tick
 static int check_pid(int pid) {
-  char p[32], b[64];
+  char p[32], b[PKLEN + 32];
   snprintf(p, sizeof p, "/proc/%d/cmdline", pid);
   int fd = open(p, O_RDONLY | O_CLOEXEC);
   if (fd < 0) return 0;
@@ -164,15 +221,16 @@ static int check_pid(int pid) {
   close(fd);
   if (n <= 0) return 0;  // kernel thread or zombie
   b[n] = 0;
-  for (const char *k : kPkg)
-    if (!strcmp(b, k)) return 1;
+  for (int i = 0; i < g_pkn; i++)
+    if (!strcmp(b, g_pk[i])) return 1;
   // fresh from zygote or the usap pool: name not set yet
   return (!strncmp(b, "zygote", 6) || b[0] == '<') ? -1 : 0;
 }
 
-static bool find_game() {
+// looks at pids that appeared since the last tick and keeps oom_score_adj open for listed apps
+static void scan() {
   int n = read_pids(g_cur, MAXPID);
-  if (n < 0) return false;
+  if (n < 0) return;
   g_adj_err = 0;
   int sn = 0, j = 0;
   for (int i = 0; i < n; i++) {
@@ -180,11 +238,12 @@ static bool find_game() {
     while (j < g_prev_n && g_prev[j] < pid) j++;
     if (j < g_prev_n && g_prev[j] == pid) { g_snap[sn++] = pid; continue; }  // seen before
     int r = check_pid(pid);
-    if (r == 1 && g_adj < 0) {
+    if (r == 1 && g_nadj < MAXPK) {
       char p[40];
       snprintf(p, sizeof p, "/proc/%d/oom_score_adj", pid);
-      g_adj = open(p, O_RDONLY | O_CLOEXEC);
-      if (g_adj < 0) { g_adj_err = errno; continue; }  // leave it out so it is retried
+      int fd = open(p, O_RDONLY | O_CLOEXEC);
+      if (fd < 0) { g_adj_err = errno; continue; }  // leave it out so it is retried
+      g_adj[g_nadj++] = fd;
     }
     if (r >= 0) g_snap[sn++] = pid;
   }
@@ -192,20 +251,24 @@ static bool find_game() {
   g_prev = g_snap;
   g_snap = t;
   g_prev_n = sn;
-  return g_adj >= 0;
 }
 
 static bool in_game() {
-  if (g_adj < 0 && !find_game()) return false;
-  char b[16];
-  ssize_t n = pread(g_adj, b, sizeof b - 1, 0);
-  if (n <= 0) {  // process died
-    close(g_adj);
-    g_adj = -1;
-    return false;
+  scan();
+  bool fg = false;
+  for (int i = 0; i < g_nadj;) {
+    char b[16];
+    ssize_t n = pread(g_adj[i], b, sizeof b - 1, 0);
+    if (n <= 0) {  // process died
+      close(g_adj[i]);
+      g_adj[i] = g_adj[--g_nadj];
+      continue;
+    }
+    b[n] = 0;
+    if (atoi(b) <= 0) fg = true;
+    i++;
   }
-  b[n] = 0;
-  return atoi(b) <= 0;
+  return fg;
 }
 
 // ---------------------------------------------------------------- device setup
@@ -307,10 +370,9 @@ static int clone_dev(int src) {
 // ---------------------------------------------------------------- scaling + stabilizing
 // per finger and axis: optional one euro filter on the raw position (casiez et al., chi 2012),
 // then scaling of the filtered movement around the touch-down point. filtering comes first so
-// jitter is not amplified. the scaled position is not clamped to the panel (unless clamp=1), so
-// a swipe never stalls before the finger reaches the screen edge: games only look at the
-// movement between events.
-struct Ax { float k; bool filt, cl, have; float raw, xh, dxh, fp, out; double t; };
+// jitter is not amplified. the scaled position is never clamped to the panel, so a swipe never
+// stalls before the finger reaches the screen edge: games only look at the movement between events.
+struct Ax { float k; bool filt, have; float raw, xh, dxh, fp, out; double t; };
 struct Slot { Ax x, y; bool zk; };
 static Slot g_sl[MAXSLOT + 1];  // last entry absorbs out-of-range slot numbers
 static int g_cur_slot = 0;
@@ -319,7 +381,7 @@ static float g_inv = 1.0f / 720;      // 1 / short panel side, makes filter spee
 
 static float alpha(float cutoff, float dt) { return 1.0f / (1.0f + 1.0f / (6.2831853f * cutoff) / dt); }
 
-static int track(int v, double t, Ax &a, int lo, int hi, const Cfg &c) {
+static int track(int v, double t, Ax &a, const Cfg &c) {
   if (!a.filt && a.k <= 1.0f) return v;  // nothing to do on this axis
   float x = (float)v;
   if (!a.have) {
@@ -342,7 +404,6 @@ static int track(int v, double t, Ax &a, int lo, int hi, const Cfg &c) {
   a.t = t;
   a.out += (fx - a.fp) * a.k;
   a.fp = fx;
-  if (a.cl) a.out = clampf(a.out, (float)lo, (float)hi);
   return (int)floorf(a.out + 0.5f);
 }
 
@@ -352,7 +413,6 @@ static void start_touch(Slot &s, const Cfg *c) {
   s.x.k = g_vx ? c->kv : c->kh;  // portrait-native panel: raw x is screen up-down in landscape
   s.y.k = g_vx ? c->kh : c->kv;
   s.x.filt = s.y.filt = c->smooth != 0;
-  s.x.cl = s.y.cl = c->clamp != 0;
   s.zk = c->zone == 0;  // left/right is decided on the first horizontal sample of the touch
 }
 
@@ -383,11 +443,11 @@ static void handle(input_event &e, const Cfg &c) {
       break;
     case ABS_MT_POSITION_X:
       if (!s.zk && !g_vx) pick_zone(s, e.value, ax, c);
-      e.value = track(e.value, ts(e), s.x, ax.minimum, ax.maximum, c);
+      e.value = track(e.value, ts(e), s.x, c);
       break;
     case ABS_MT_POSITION_Y:
       if (!s.zk && g_vx) pick_zone(s, e.value, ay, c);
-      e.value = track(e.value, ts(e), s.y, ay.minimum, ay.maximum, c);
+      e.value = track(e.value, ts(e), s.y, c);
       break;
   }
 }
@@ -532,7 +592,7 @@ static void write_pid(const char *path) {
 }
 
 static void ok_line(int procs, const Cfg &c) {
-  printf("OK dev=%s vert_is_x=%d filter=%d procs=%d\n", g_path, (int)g_vx, c.filter, procs);
+  printf("OK dev=%s vert_is_x=%d filter=%d pkgs=%d procs=%d\n", g_path, (int)g_vx, c.filter, g_pkn, procs);
   fflush(stdout);
 }
 
