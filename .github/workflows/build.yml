@@ -1,5 +1,8 @@
 name: Build plugin
 on:
+  push:
+    branches: [main]
+    tags: ['v*']
   workflow_dispatch:
 permissions:
   contents: write
@@ -18,15 +21,15 @@ jobs:
               -static-libstdc++ \
               -fno-exceptions -fno-rtti -fvisibility=hidden \
               -ffunction-sections -fdata-sections -Wl,--gc-sections \
-              sensit.cpp -o out/system/bin/sensit.${t##*:}
+              flick.cpp -o out/system/bin/flick.${t##*:}
           done
-          file out/system/bin/sensit.*
+          file out/system/bin/flick.*
           ls -l out/system/bin
       - name: Verify no extra shared libraries
         run: |
           set -e
           READELF=$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf
-          for f in out/system/bin/sensit.*; do
+          for f in out/system/bin/flick.*; do
             $READELF -d $f | grep NEEDED || true
             if $READELF -d $f | grep NEEDED | grep -vE 'lib(c|m|dl)\.so'; then
               echo "::error::$f depends on a library that does not exist on the phone"
@@ -39,17 +42,17 @@ jobs:
           cp module.prop customize.sh uninstall.sh hw.sh out/
           cp index.html out/webroot/
           sed -i 's/\r$//' out/module.prop out/*.sh  # crlf breaks module.prop
-          chmod 755 out/*.sh out/system/bin/sensit.*
+          chmod 755 out/*.sh out/system/bin/flick.*
       - name: Package
         run: |
           VER=$(grep '^version=' module.prop | cut -d= -f2)
-          cd out && zip -r ../Vektor-$VER.zip .
+          cd out && zip -r ../Flick-$VER.zip .
       - uses: actions/upload-artifact@v4
         with:
-          name: Vektor
-          path: Vektor-*.zip
+          name: Flick
+          path: Flick-*.zip
       - name: Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: Vektor-*.zip
+          files: Flick-*.zip
