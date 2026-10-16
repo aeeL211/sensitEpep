@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
-<title>Vektor</title>
+<title>Flick</title>
 <style>
 /* token dan geometri mengikuti shadcn/ui resmi: docs theming (neutral) dan registry new-york-v4 */
 :root{--radius:.625rem;--radius-xs:.125rem;--radius-sm:calc(var(--radius)*.6);--radius-md:calc(var(--radius)*.8);
@@ -18,95 +18,110 @@
   --font-sans:"Geist",ui-sans-serif,system-ui,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
   --font-serif:ui-serif,Georgia,Cambria,"Times New Roman",Times,serif;
   --font-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-  --ease:cubic-bezier(.4,0,.2,1)}
-:root{--background:#ffffff;--foreground:#0a0a0a;--card:#ffffff;--card-foreground:#0a0a0a;--primary:#171717;--primary-foreground:#fafafa;--secondary:#f5f5f5;--secondary-foreground:#171717;--muted:#f5f5f5;--muted-foreground:#737373;--accent:#f5f5f5;--accent-foreground:#171717;--destructive:#e7000b;--border:#e5e5e5;--input:#e5e5e5;--ring:#a1a1a1;--chart-2:#009689;--ring-50:rgba(161,161,161,0.5);--primary-90:rgba(23,23,23,0.9);--secondary-80:rgba(245,245,245,0.8);--destructive-90:rgba(231,0,11,0.9);--destructive-ring:rgba(231,0,11,0.2);--out-bg:var(--background);--out-bd:var(--border);--out-hv:var(--accent);--bad-bg:var(--destructive);--sw-off:var(--input);--sw-thumb:var(--background);--sw-thumb-on:var(--background);color-scheme:light}
+  --ease:cubic-bezier(.4,0,.2,1);
+  --k:1.2;--fs-xs:calc(12px*var(--k));--lh-xs:calc(16px*var(--k));--fs-sm:calc(14px*var(--k));--lh-sm:calc(20px*var(--k));
+  --fs-base:calc(16px*var(--k));--lh-base:calc(24px*var(--k));--fs-lg:calc(18px*var(--k));--lh-lg:calc(28px*var(--k));
+  --fs-2xl:calc(24px*var(--k));--lh-2xl:calc(32px*var(--k))}
+:root{--background:#ffffff;--foreground:#0a0a0a;--card:#ffffff;--card-foreground:#0a0a0a;--primary:#171717;--primary-foreground:#fafafa;--secondary:#f5f5f5;--secondary-foreground:#171717;--muted:#f5f5f5;--muted-foreground:#737373;--accent:#f5f5f5;--accent-foreground:#171717;--destructive:#e7000b;--border:#e5e5e5;--input:#e5e5e5;--ring:#a1a1a1;--chart-2:#009689;--ring-50:rgba(161,161,161,0.5);--primary-90:rgba(23,23,23,0.9);--secondary-80:rgba(245,245,245,0.8);--destructive-90:rgba(231,0,11,0.9);--destructive-ring:rgba(231,0,11,0.2);--ok-ring:rgba(0,150,137,0.22);--out-bg:var(--background);--out-bd:var(--border);--out-hv:var(--accent);--bad-bg:var(--destructive);--sw-off:var(--input);--sw-thumb:var(--background);--sw-thumb-on:var(--background);color-scheme:light}
 @supports (color:oklch(0 0 0)){:root{--background:oklch(1 0 0);--foreground:oklch(0.145 0 0);--card:oklch(1 0 0);--card-foreground:oklch(0.145 0 0);--primary:oklch(0.205 0 0);--primary-foreground:oklch(0.985 0 0);--secondary:oklch(0.97 0 0);--secondary-foreground:oklch(0.205 0 0);--muted:oklch(0.97 0 0);--muted-foreground:oklch(0.556 0 0);--accent:oklch(0.97 0 0);--accent-foreground:oklch(0.205 0 0);--destructive:oklch(0.577 0.245 27.325);--border:oklch(0.922 0 0);--input:oklch(0.922 0 0);--ring:oklch(0.708 0 0);--chart-2:oklch(0.6 0.118 184.704);--ring-50:oklch(0.708 0 0 / 50%);--primary-90:oklch(0.205 0 0 / 90%);--secondary-80:oklch(0.97 0 0 / 80%);--destructive-90:oklch(0.577 0.245 27.325 / 90%);--destructive-ring:oklch(0.577 0.245 27.325 / 20%)}}
 @media (prefers-color-scheme:dark){
-:root{--background:#0a0a0a;--foreground:#fafafa;--card:#171717;--card-foreground:#fafafa;--primary:#e5e5e5;--primary-foreground:#171717;--secondary:#262626;--secondary-foreground:#fafafa;--muted:#262626;--muted-foreground:#a1a1a1;--accent:#262626;--accent-foreground:#fafafa;--destructive:#ff6467;--border:rgba(255,255,255,0.1);--input:rgba(255,255,255,0.15);--ring:#737373;--chart-2:#00bc7d;--ring-50:rgba(115,115,115,0.5);--primary-90:rgba(229,229,229,0.9);--secondary-80:rgba(38,38,38,0.8);--destructive-90:rgba(255,100,103,0.9);--destructive-ring:rgba(255,100,103,0.4);--input-30:rgba(255,255,255,0.045);--input-50:rgba(255,255,255,0.075);--input-80:rgba(255,255,255,0.12);--bad-bg:rgba(255,100,103,0.6);--out-bg:var(--input-30);--out-bd:var(--input);--out-hv:var(--input-50);--sw-off:var(--input-80);--sw-thumb:var(--foreground);--sw-thumb-on:var(--primary-foreground);color-scheme:dark}
+:root{--background:#0a0a0a;--foreground:#fafafa;--card:#171717;--card-foreground:#fafafa;--primary:#e5e5e5;--primary-foreground:#171717;--secondary:#262626;--secondary-foreground:#fafafa;--muted:#262626;--muted-foreground:#a1a1a1;--accent:#262626;--accent-foreground:#fafafa;--destructive:#ff6467;--border:rgba(255,255,255,0.1);--input:rgba(255,255,255,0.15);--ring:#737373;--chart-2:#00bc7d;--ring-50:rgba(115,115,115,0.5);--primary-90:rgba(229,229,229,0.9);--secondary-80:rgba(38,38,38,0.8);--destructive-90:rgba(255,100,103,0.9);--destructive-ring:rgba(255,100,103,0.4);--ok-ring:rgba(0,188,125,0.28);--input-30:rgba(255,255,255,0.045);--input-50:rgba(255,255,255,0.075);--input-80:rgba(255,255,255,0.12);--bad-bg:rgba(255,100,103,0.6);--out-bg:var(--input-30);--out-bd:var(--input);--out-hv:var(--input-50);--sw-off:var(--input-80);--sw-thumb:var(--foreground);--sw-thumb-on:var(--primary-foreground);color-scheme:dark}
 @supports (color:oklch(0 0 0)){:root{--background:oklch(0.145 0 0);--foreground:oklch(0.985 0 0);--card:oklch(0.205 0 0);--card-foreground:oklch(0.985 0 0);--primary:oklch(0.922 0 0);--primary-foreground:oklch(0.205 0 0);--secondary:oklch(0.269 0 0);--secondary-foreground:oklch(0.985 0 0);--muted:oklch(0.269 0 0);--muted-foreground:oklch(0.708 0 0);--accent:oklch(0.269 0 0);--accent-foreground:oklch(0.985 0 0);--destructive:oklch(0.704 0.191 22.216);--border:oklch(1 0 0 / 10%);--input:oklch(1 0 0 / 15%);--ring:oklch(0.556 0 0);--chart-2:oklch(0.696 0.17 162.48);--ring-50:oklch(0.556 0 0 / 50%);--primary-90:oklch(0.922 0 0 / 90%);--secondary-80:oklch(0.269 0 0 / 80%);--destructive-90:oklch(0.704 0.191 22.216 / 90%);--destructive-ring:oklch(0.704 0.191 22.216 / 40%);--input-30:oklch(1 0 0 / 4.5%);--input-50:oklch(1 0 0 / 7.5%);--input-80:oklch(1 0 0 / 12%);--bad-bg:oklch(0.704 0.191 22.216 / 60%)}}}
 
 *,::before,::after{box-sizing:border-box;border:0 solid var(--border);outline-color:var(--ring-50);-webkit-tap-highlight-color:transparent}
+/* skala teks = tipografi shadcn/ui (xs 12/16, sm 14/20, base 16/24, lg 18/28, 2xl 24/32) dikali --k (1.2) agar nyaman di layar HP.
+   satu angka --k mengatur semuanya: keterangan=xs, isi/label/tombol=sm, judul kartu dan nilai=base, judul dialog=lg, nama=2xl.
+   tinggi baris tidak pernah 1 agar huruf berekor tidak terpotong saat teks membungkus */
 body{margin:0 auto;max-width:480px;padding:16px 16px 40px;background:var(--background);color:var(--foreground);
-  font:16px/24px var(--font-sans);-webkit-font-smoothing:antialiased}
+  font:var(--fs-sm)/var(--lh-sm) var(--font-sans);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;text-size-adjust:100%}
 p,h1,h2,h3{margin:0}
-h1{font:500 26px/30px var(--font-serif);letter-spacing:-.025em}
-h2{font-size:16px;line-height:1;font-weight:600}
-.desc{font-size:14px;line-height:20px;color:var(--muted-foreground)}
-.xs{font-size:12px;line-height:16px}
-.lbl{font-size:14px;line-height:1;font-weight:500}
+h1{font:500 var(--fs-2xl)/var(--lh-2xl) var(--font-serif);letter-spacing:-.025em}
+h2{font-size:var(--fs-base);line-height:var(--lh-base);font-weight:600}
+.desc{font-size:var(--fs-sm);line-height:var(--lh-sm);color:var(--muted-foreground)}
+.xs{font-size:var(--fs-xs);line-height:var(--lh-xs)}
+.lbl{font-size:var(--fs-sm);line-height:var(--lh-sm);font-weight:500}
 button{font:inherit;color:inherit;touch-action:manipulation}
 button:not(:disabled){cursor:pointer}
 .err{color:var(--destructive)}
 .hide{display:none}
 
 /* card: gap-6 py-6 px-6 rounded-xl shadow-sm */
-.card{display:flex;flex-direction:column;gap:24px;padding:24px;margin-bottom:16px;background:var(--card);color:var(--card-foreground);
+.card{display:flex;flex-direction:column;gap:20px;padding:20px;margin-bottom:16px;background:var(--card);color:var(--card-foreground);
   border:1px solid var(--border);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm)}
 .ch{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
-.ch>div:first-child{display:grid;gap:8px;min-width:0}
+.ch>div:first-child{display:grid;gap:4px;min-width:0}
 .col{display:grid;gap:20px}
+/* separator shadcn: garis 1px bg-border selebar kartu, memisahkan bagian dalam satu kartu */
+.sep{flex:none;height:1px;margin:0 -20px;border:0;background:var(--border)}
 .sp{display:flex;align-items:center;justify-content:space-between;gap:12px}
 
-/* header: judul tepat di tengah kartu, lencana status di pojok kanan tanpa memengaruhi posisi judul.
-   kolom kiri dan kanan sama lebar (1fr), sehingga kolom tengah selalu berada di tengah seluruh kontainer */
-.hd{text-align:center}
-.hdw{display:grid;gap:8px}
-.top{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;column-gap:8px}
-.top h1{grid-column:2;text-align:center}
-.top .badge{grid-column:3;justify-self:end}
-.hd .btn{align-self:stretch}
+/* header: merek (logo, nama, tagline), panel status dengan titik berhalo, lalu tombol utama. warna titik dan halo
+   mengikuti keadaan layanan, titik berdenyut pelan saat boost aktif */
+.hd{gap:20px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{display:grid;flex:none;place-items:center;width:44px;height:44px;border-radius:var(--radius-lg);background:var(--primary);
+  color:var(--primary-foreground);box-shadow:var(--shadow-xs)}
+.logo svg{display:block;width:24px;height:24px}
+.bt{display:grid;gap:2px;min-width:0}
+.stat{display:flex;align-items:flex-start;gap:14px;padding:16px;border:1px solid var(--border);border-radius:var(--radius-lg);
+  background:var(--muted);transition:border-color .2s}
+.stat[data-s=ok]{border-color:var(--ok-ring)}
+.stat[data-s=err]{border-color:var(--destructive-ring)}
+.stat>div{display:grid;gap:4px;min-width:0}
+.st{font-size:var(--fs-base);line-height:var(--lh-base);font-weight:600}
 
 /* istilah teknis: tautan bergaris bawah yang membuka dialog */
 .term{display:inline;padding:0;background:none;color:var(--foreground);font:inherit;text-decoration:underline;
   text-decoration-thickness:1px;text-underline-offset:4px;text-decoration-color:var(--muted-foreground)}
 
-/* badge outline: rounded-full px-2 py-0.5 text-xs font-medium */
-.badge{display:inline-flex;align-items:center;justify-content:center;gap:4px;flex:none;width:fit-content;padding:2px 8px;
-  border:1px solid var(--border);border-radius:9999px;font-size:12px;line-height:16px;font-weight:500;white-space:nowrap}
-.dot{width:8px;height:8px;border-radius:9999px;background:var(--muted-foreground);transition:background-color .2s}
-.dot.ok{background:var(--chart-2)}.dot.err{background:var(--destructive)}
+/* titik status: 10px dengan halo 4px */
+.dot{--halo:var(--border);flex:none;width:12px;height:12px;margin-top:8px;border-radius:9999px;background:var(--muted-foreground);
+  box-shadow:0 0 0 4px var(--halo);transition:background-color .2s,box-shadow .2s}
+.dot.ok{--halo:var(--ok-ring);background:var(--chart-2);animation:pulse 2s ease-in-out infinite}
+.dot.err{--halo:var(--destructive-ring);background:var(--destructive)}
+@keyframes pulse{50%{box-shadow:0 0 0 7px transparent}}
 
 /* button: h-9 px-4 py-2 rounded-md text-sm font-medium shadow-xs, ring 3px ring/50 saat fokus */
-.btn{display:inline-flex;flex:none;align-items:center;justify-content:center;gap:8px;height:36px;padding:8px 16px;
+.btn{display:inline-flex;flex:none;align-items:center;justify-content:center;gap:8px;height:calc(36px*var(--k));padding:8px 18px;
   border:1px solid transparent;border-radius:var(--radius-md);background:var(--primary);color:var(--primary-foreground);
-  font-size:14px;line-height:20px;font-weight:500;white-space:nowrap;box-shadow:var(--shadow-xs);outline:none;
+  font-size:var(--fs-sm);line-height:var(--lh-sm);font-weight:500;white-space:nowrap;box-shadow:var(--shadow-xs);outline:none;
   transition:all .15s var(--ease)}
 .btn:focus-visible{border-color:var(--ring);box-shadow:var(--shadow-xs),0 0 0 3px var(--ring-50)}
 .btn:active:not(:disabled){transform:translateY(1px)}
 .btn:disabled{pointer-events:none;opacity:.5}
 .btn.full{width:100%}
-.btn.lg{height:40px;padding:8px 24px}
-.btn.sm{height:32px;gap:6px;padding:0 12px}
+.btn.lg{height:calc(40px*var(--k));padding:8px 24px}
+.btn.sm{height:calc(32px*var(--k));gap:6px;padding:0 12px}
 .btn.sec{background:var(--secondary);color:var(--secondary-foreground)}
 .btn.out{background:var(--out-bg);border-color:var(--out-bd);color:var(--foreground)}
 .btn.bad{background:var(--bad-bg);color:#fff}
 .btn.bad:focus-visible{box-shadow:var(--shadow-xs),0 0 0 3px var(--destructive-ring)}
-.spin{display:none;flex:none;width:16px;height:16px;animation:spin 1s linear infinite}
+.spin{display:none;flex:none;width:20px;height:20px;animation:spin 1s linear infinite}
 .busy .spin{display:block}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* slider: track h-1.5 bg-muted, thumb size-4 putih, ring 4px ring/50 saat hover, fokus dan geser */
-.slider{position:relative;height:16px;--r:0}
-.track{position:absolute;left:0;right:0;top:50%;height:6px;margin-top:-3px;border-radius:9999px;background:var(--muted);
+.slider{position:relative;height:20px;--r:0}
+.track{position:absolute;left:0;right:0;top:50%;height:8px;margin-top:-4px;border-radius:9999px;background:var(--muted);
   overflow:hidden;pointer-events:none}
-.range{position:absolute;left:0;top:0;bottom:0;width:calc(8px + (100% - 16px) * var(--r));background:var(--primary)}
-.thumb{position:absolute;top:0;left:calc(8px + (100% - 16px) * var(--r));width:16px;height:16px;margin-left:-8px;
+.range{position:absolute;left:0;top:0;bottom:0;width:calc(10px + (100% - 20px) * var(--r));background:var(--primary)}
+.thumb{position:absolute;top:0;left:calc(10px + (100% - 20px) * var(--r));width:20px;height:20px;margin-left:-10px;
   border:1px solid var(--primary);border-radius:9999px;background:#fff;box-shadow:var(--shadow-sm);outline:none;touch-action:none;
   transition:color .15s var(--ease),box-shadow .15s var(--ease)}
-.thumb::before{content:"";position:absolute;inset:-14px}
+.thumb::before{content:"";position:absolute;inset:-14px -10px}
 .thumb:focus-visible,.drag .thumb{box-shadow:var(--shadow-sm),0 0 0 4px var(--ring-50)}
-.val{font-size:16px;line-height:1;font-weight:600;font-variant-numeric:tabular-nums}
+.val{padding:0 10px;border-radius:var(--radius-md);background:var(--muted);font-size:var(--fs-base);line-height:var(--lh-base);font-weight:600;font-variant-numeric:tabular-nums}
 .val small{font-weight:400;color:var(--muted-foreground);margin-left:1px}
 
-/* switch: proporsi resmi (thumb bergeser calc(100%-2px)) diperbesar ~1.4x untuk layar sentuh: 44x24.4, thumb 22 */
-.sw{position:relative;display:inline-flex;flex:none;align-items:center;width:44px;height:24.4px;padding:0;
+/* switch: proporsi resmi diperbesar ~1.6x untuk layar sentuh: 52x30, thumb 28 */
+.sw{position:relative;display:inline-flex;flex:none;align-items:center;width:52px;height:30px;padding:0;
   border:1px solid transparent;border-radius:9999px;background:var(--sw-off);box-shadow:var(--shadow-xs);outline:none;
   transition:all .15s var(--ease)}
 .sw::before{content:"";position:absolute;inset:-10px -6px}
-.sw::after{content:"";display:block;width:22px;height:22px;border-radius:9999px;background:var(--sw-thumb);
+.sw::after{content:"";display:block;width:28px;height:28px;border-radius:9999px;background:var(--sw-thumb);
   transition:transform .15s var(--ease)}
 .sw[aria-checked=true]{background:var(--primary)}
-.sw[aria-checked=true]::after{background:var(--sw-thumb-on);transform:translateX(20px)}
+.sw[aria-checked=true]::after{background:var(--sw-thumb-on);transform:translateX(22px)}
 .sw:focus-visible{border-color:var(--ring);box-shadow:var(--shadow-xs),0 0 0 3px var(--ring-50)}
 .swrow{padding:16px;border:1px solid var(--border);border-radius:var(--radius-md)}
 
@@ -120,21 +135,22 @@ button:not(:disabled){cursor:pointer}
 .opt{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:6px;min-width:0;
   padding:10px 6px 8px;border:1px solid var(--border);border-radius:var(--radius-lg);background:transparent;color:var(--muted-foreground);
   outline:none;transition:border-color .2s var(--ease),box-shadow .15s var(--ease)}
-.opt>span:first-child{display:block;width:100%;max-width:104px}
+.opt>span:first-child{display:block;width:100%;max-width:120px}
 .opt svg{display:block;width:100%;height:auto;overflow:visible;transition:opacity .2s}
-.opt .t{font-size:14px;line-height:20px;font-weight:500;color:var(--foreground)}
-.opt .s{font-size:12px;line-height:16px;margin-top:-4px}
+.opt .t{font-size:var(--fs-sm);line-height:var(--lh-sm);font-weight:500;color:var(--foreground)}
+.opt .s{font-size:var(--fs-xs);line-height:var(--lh-xs);margin-top:-4px}
 .opt[aria-checked=true]{border-color:transparent}
 .opt:focus-visible{border-color:var(--ring);box-shadow:0 0 0 3px var(--ring-50)}
 .opt[aria-checked=true]:focus-visible{border-color:transparent;box-shadow:0 0 0 4px var(--ring-50)}
 .opt:not([aria-checked=true]) svg{opacity:.8}
 .ph-b{fill:none;stroke:var(--muted-foreground);stroke-width:1.5;transition:stroke .2s}
 .ph-s{fill:var(--muted);transition:fill .2s}
-.ph-h{fill:var(--primary)}
-.ph-n{fill:var(--muted-foreground);stroke:var(--card);stroke-width:1;transition:fill .2s}
+.ph-h{fill:var(--muted-foreground);fill-opacity:.34;transition:fill .2s,fill-opacity .2s}
+.ph-n{fill:var(--muted-foreground);transition:fill .2s}
 .opt[aria-checked=true] .ph-b{stroke:var(--foreground)}
 .opt[aria-checked=true] .ph-s{fill:var(--card)}
 .opt[aria-checked=true] .ph-n{fill:var(--foreground)}
+.opt[aria-checked=true] .ph-h{fill:var(--primary);fill-opacity:.3}
 .cv-ax{fill:none;stroke:var(--muted-foreground);stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round;opacity:.55}
 .cv-ref{fill:none;stroke:var(--muted-foreground);stroke-width:1.6;stroke-linecap:round;stroke-dasharray:4 4}
 .cv-ln{fill:none;stroke:var(--foreground);stroke-width:2.6;stroke-linecap:round}
@@ -145,12 +161,12 @@ button:not(:disabled){cursor:pointer}
 .ready .cl{transition:height .32s cubic-bezier(.32,.72,0,1),opacity .24s ease,visibility 0s .32s}
 .cl.open{opacity:1;visibility:visible}
 .ready .cl.open{transition-delay:0s}
-.in{display:grid;gap:16px;padding:24px 0 4px}
+.in{display:grid;gap:16px;padding:20px 0 4px}
 
-/* textarea: min-h-16 rounded-md border-input px-3 py-2 shadow-xs, text-sm (hp android tidak auto-zoom) */
-textarea{display:block;width:100%;min-height:64px;padding:8px 12px;resize:none;border:1px solid var(--input);
+/* textarea: min-h-16 rounded-md border-input px-3 py-2 shadow-xs (hp android tidak auto-zoom) */
+textarea{display:block;width:100%;min-height:76px;padding:8px 12px;resize:none;border:1px solid var(--input);
   border-radius:var(--radius-md);background:transparent;color:var(--foreground);box-shadow:var(--shadow-xs);outline:none;
-  font:14px/20px var(--font-sans);overflow-wrap:break-word;field-sizing:content;transition:color .15s var(--ease),box-shadow .15s var(--ease)}
+  font:var(--fs-sm)/var(--lh-sm) var(--font-sans);overflow-wrap:break-word;field-sizing:content;transition:color .15s var(--ease),box-shadow .15s var(--ease)}
 @media (prefers-color-scheme:dark){textarea{background:var(--input-30)}}
 textarea::placeholder{color:var(--muted-foreground)}
 textarea:focus-visible{border-color:var(--ring);box-shadow:var(--shadow-xs),0 0 0 3px var(--ring-50)}
@@ -165,8 +181,8 @@ textarea[aria-invalid=true]{border-color:var(--destructive);box-shadow:var(--sha
   transition:opacity .2s,transform .2s}
 .ov.open .dlg{opacity:1;transform:none}
 .dh{display:flex;flex-direction:column;gap:8px}
-.dlg h3{font-size:18px;line-height:1;font-weight:600;padding-right:24px}
-.dlg .dh p{font-size:14px;line-height:20px}
+.dlg h3{font-size:var(--fs-lg);line-height:var(--lh-lg);font-weight:600;padding-right:24px}
+.dlg .dh p{font-size:var(--fs-sm);line-height:var(--lh-sm)}
 #dD{display:grid;gap:8px}
 .dlg .x{position:absolute;top:16px;right:16px;display:grid;place-items:center;width:16px;height:16px;padding:0;
   border-radius:var(--radius-xs);background:none;color:inherit;opacity:.7;outline:none;transition:opacity .15s}
@@ -175,7 +191,7 @@ textarea[aria-invalid=true]{border-color:var(--destructive);box-shadow:var(--sha
 .foot{display:flex;flex-direction:column-reverse;gap:8px}
 @media (min-width:640px){.foot{flex-direction:row;justify-content:flex-end}}
 
-pre{margin:0;font:12px/18px var(--font-mono);color:var(--muted-foreground);white-space:pre-wrap;word-break:break-word}
+pre{margin:0;font:var(--fs-xs)/var(--lh-xs) var(--font-mono);color:var(--muted-foreground);white-space:pre-wrap;word-break:break-word}
 
 /* hover hanya pada perangkat yang benar-benar punya kursor, seperti varian hover di tailwind v4 */
 @media (hover:hover){
@@ -188,21 +204,22 @@ pre{margin:0;font:12px/18px var(--font-mono);color:var(--muted-foreground);white
   .dlg .x:hover{opacity:1}
   .term:hover{text-decoration-color:var(--foreground)}
 }
-@media (prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2s}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2s}.dot{animation:none!important}}
 </style>
 </head>
 <body>
 
-<div class="card hd">
-  <div class="hdw">
-    <div class="top"><h1>Vektor</h1><span class="badge"><i class="dot" id="dot"></i><span id="badge" aria-live="polite">…</span></span></div>
-    <p class="desc">Peningkat sentuhan tanpa akses root.</p>
+<header class="card hd">
+  <div class="brand">
+    <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="1.5"/><path d="M10 14 18 6M10 6h8v8"/></svg></span>
+    <div class="bt"><h1>Flick</h1><p class="desc">Peningkat sentuhan tanpa akses root.</p></div>
   </div>
-  <div class="col" style="gap:12px">
-    <p class="desc" id="detail">Memeriksa status layanan…</p>
-    <button class="btn lg full" id="toggle"><svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="status" aria-label="Memuat"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span id="toggleT">Aktifkan</span></button>
+  <div class="stat" id="stat" data-s="off">
+    <i class="dot" id="dot"></i>
+    <div><p class="st" id="badge" aria-live="polite">…</p><p class="desc" id="detail">Memeriksa status layanan…</p></div>
   </div>
-</div>
+  <button class="btn lg full" id="toggle"><svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" role="status" aria-label="Memuat"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span id="toggleT">Aktifkan</span></button>
+</header>
 
 <div class="card">
   <div class="ch"><div><h2>Sensitivitas</h2>
@@ -216,12 +233,10 @@ pre{margin:0;font:12px/18px var(--font-mono);color:var(--muted-foreground);white
       <div class="sp"><span class="lbl"><button class="term" data-t="y">Sumbu Y</button></span><span class="val"><span data-show="sens_v">1.0</span><small>×</small></span></div>
       <div class="slider" data-k="sens_v" data-min="1" data-max="5" data-step="0.1"><div class="track"><div class="range"></div></div><div class="thumb" role="slider" tabindex="0" aria-label="Sensitivitas sumbu Y"></div></div>
     </div>
-    <div class="sp swrow"><label class="lbl" id="linkL">Sinkronkan sumbu X dan Y</label>
+    <div class="sp swrow"><label class="lbl" id="linkL">Sinkronkan kedua sumbu</label>
       <button class="sw" id="link" role="switch" aria-labelledby="linkL"></button></div>
   </div>
-</div>
-
-<div class="card">
+<hr class="sep">
   <div class="ch"><div><h2>Kurva sensitivitas</h2>
     <p class="desc">Bentuk <button class="term" data-t="kurva">kurva</button> pengali terhadap kecepatan gerak jari.</p></div></div>
   <div class="col" style="gap:12px">
@@ -233,9 +248,7 @@ pre{margin:0;font:12px/18px var(--font-mono);color:var(--muted-foreground);white
     <p class="desc" id="cvDesc"></p>
     <p class="desc xs">Sumbu mendatar: kecepatan jari. Sumbu tegak: hasil di game. Garis putus-putus: linear sebagai pembanding.</p>
   </div>
-</div>
-
-<div class="card">
+<hr class="sep">
   <div class="ch"><div><h2>Zona sentuh</h2>
     <p class="desc">Pengali hanya diterapkan pada <button class="term" data-t="zona">zona</button> terpilih. Sentuhan di luar zona tidak dimodifikasi.</p></div></div>
   <div>
@@ -259,7 +272,7 @@ pre{margin:0;font:12px/18px var(--font-mono);color:var(--muted-foreground);white
   <div class="ch"><div><h2>Penstabil gerakan</h2>
     <p class="desc">Meredam getaran jari menggunakan <button class="term" data-t="oneeuro">One Euro Filter</button>.</p></div>
     <button class="sw" role="switch" data-k="smooth" aria-label="Penstabil gerakan"></button></div>
-  <div class="cl" id="smoothBox" style="margin-top:-24px"><div class="cw"><div class="in">
+  <div class="cl" id="smoothBox" style="margin-top:-20px"><div class="cw"><div class="in">
     <div class="col" style="gap:14px">
       <div class="sp"><span class="lbl"><button class="term" data-t="kekuatan">Kekuatan</button></span><span class="val"><span data-show="strength">40</span><small>%</small></span></div>
       <div class="slider" data-k="strength" data-min="1" data-max="100" data-step="1"><div class="track"><div class="range"></div></div><div class="thumb" role="slider" tabindex="0" aria-label="Kekuatan peredaman"></div></div>
@@ -271,9 +284,7 @@ pre{margin:0;font:12px/18px var(--font-mono);color:var(--muted-foreground);white
       <p class="desc xs">Nilai tinggi membuat tarikan cepat diteruskan lebih langsung, dengan penundaan minimal.</p>
     </div>
   </div></div></div>
-</div>
-
-<div class="card">
+<hr class="sep">
   <div class="ch"><div><h2>Peningkat Sentuhan HW</h2>
     <p class="desc">Tingkatkan respons sentuhan via <button class="term" data-t="hwc">Hardware Composer</button>.</p></div>
     <button class="sw" role="switch" data-k="hw" aria-label="Peningkat Sentuhan HW"></button></div>
@@ -283,7 +294,7 @@ pre{margin:0;font:12px/18px var(--font-mono);color:var(--muted-foreground);white
   <div class="ch"><div><h2>Filter package</h2>
     <p class="desc">Boost hanya aktif saat salah satu <button class="term" data-t="package">package</button> pada daftar berada di <button class="term" data-t="fg">foreground</button>.</p></div>
     <button class="sw" role="switch" data-k="filter" aria-label="Filter package"></button></div>
-  <div style="margin-top:-24px">
+  <div style="margin-top:-20px">
     <div class="cl" id="pkBox"><div class="cw"><div class="in" style="gap:8px">
       <label class="lbl" for="pk">Daftar package</label>
       <textarea id="pk" rows="3" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="pkHint pkErr"></textarea>
@@ -308,12 +319,12 @@ pre{margin:0;font:12px/18px var(--font-mono);color:var(--muted-foreground);white
 
 <script>
 try{if(window.ksu&&typeof ksu.fullScreen==='function')ksu.fullScreen(false)}catch(e){}  // WebUI tidak boleh layar penuh
-const DIR='/data/user_de/0/com.android.shell/axeron/plugins/sensit';
+const DIR='/data/user_de/0/com.android.shell/axeron/plugins/flick';
 const DEF_PK='com.dts.freefireth,com.dts.freefiremax';
 const PK_RE=/^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$/;
 // kunci sens_h dan sens_v tetap, di UI keduanya adalah sumbu X dan Y
 const cfg={sens_h:1,sens_v:1,curve:0,zone:0,orient:1,smooth:0,strength:40,resp:85,hw:0,filter:1,pkgs:DEF_PK};
-let link=true, running=false, busy=false, busyText='', state='', pkDirty=false, silent=false, prevAct=null, prevErr='';
+let link=true, running=false, busy=false, busyText='', state='', pkDirty=false, prevS=null;
 const $=id=>document.getElementById(id);
 const all=sel=>document.querySelectorAll(sel);
 
@@ -321,7 +332,7 @@ const TERMS={
   x:['Sumbu X','Arah gerak jari ke kiri dan kanan saat HP dalam posisi landscape.','Menaikkan nilainya membuat geseran mendatar terasa lebih jauh, sehingga jari tidak perlu bergeser sepanjang itu.'],
   y:['Sumbu Y','Arah gerak jari ke atas dan bawah saat HP dalam posisi landscape.','Pada game tembak seperti Free Fire, sumbu ini paling berpengaruh pada tarikan ke atas untuk membidik kepala.'],
   pengali:['Pengali','Angka yang mengalikan jarak geser jari sebelum dibaca oleh game.','Contoh: 2.0× berarti geseran sejauh 1 cm dibaca seperti 2 cm. Nilai 1.0× berarti tidak ada perubahan.'],
-  kurva:['Kurva sensitivitas','Mengatur apakah pengali berubah menurut kecepatan gerak jari. Linear: pengali sama di semua kecepatan. Accel: gerakan pelan tetap presisi (minimal 1×) dan pengali penuh baru dipakai saat tarikan cepat. Decel: gerakan pelan diperkuat lebih besar dan pengali normal dipakai saat tarikan cepat.','Kecepatan diukur dari kedua sumbu sekaligus, dibandingkan dengan tarikan cepat sekitar 1.5 lebar sisi pendek layar per detik. Kurva dikunci saat jari menyentuh layar.'],
+  kurva:['Kurva sensitivitas','Mengatur apakah pengali berubah menurut kecepatan gerak jari. Linear: pengali sama di semua kecepatan. Accel: gerakan pelan tetap presisi (minimal 1×) dan pengali penuh baru dipakai saat tarikan cepat. Decel: gerakan pelan diperkuat hingga 2× pengali dan pengali normal dipakai saat tarikan cepat.','Kecepatan diukur dari kedua sumbu sekaligus, dibandingkan dengan tarikan cepat sekitar 1.5 lebar sisi pendek layar per detik. Kurva dikunci saat jari menyentuh layar.'],
   hwc:['Peningkat Sentuhan HW','Menyetel properti sistem debug.sf.hw (Hardware Composer, bagian Android yang menyusun tampilan layar) agar respons sentuhan meningkat.','Properti hanya diubah selama boost aktif, lalu dikembalikan ke nilai semula saat boost berhenti atau layanan dimatikan. Efeknya bergantung pada perangkat.'],
   zona:['Zona sentuh','Layar dibagi dua pada titik tengahnya. Global berlaku di seluruh layar, Kiri atau Kanan hanya di sisi itu.','Pilih sisi tempat jari Anda mengarahkan bidikan agar sisi lain, misalnya tombol gerak, tetap normal.'],
   rotasi:['Rotasi layar','Menentukan sisi mana yang dianggap kiri, karena arah landscape 90° dan 270° saling berlawanan.','Layanan tidak membaca rotasi secara otomatis. Jika zona kiri dan kanan terasa terbalik, pindah ke opsi lainnya.'],
@@ -367,14 +378,16 @@ function run(cmd){
 }
 const log=t=>{$('log').textContent=t||'—'};
 const toast=m=>{try{if(window.ksu&&typeof ksu.toast==='function')ksu.toast(m)}catch(e){}};
-// toast saat boost berpindah aktif/nonaktif atau muncul error. aksi tombol memberi toast sendiri (silent)
+// toast pada setiap perubahan status: mati, siaga, aktif (boost ON), error. status awal saat WebUI dibuka tidak di-toast.
+// perubahan dari tombol, dari daemon (game masuk/keluar foreground) maupun daemon mati sendiri lewat jalur yang sama
+const statusKey=()=>!running?'off':state.startsWith('error:')?'error':state==='active'?'active':'idle';
 function announce(){
-  const act=running&&state==='active', err=state.startsWith('error:')?state:'';
-  if(prevAct!==null&&!silent){
-    if(act!==prevAct)toast(act?'Vektor ON · X '+cfg.sens_h.toFixed(1)+'× · Y '+cfg.sens_v.toFixed(1)+'×':running?'Vektor OFF':'Vektor mati');
-    else if(err&&err!==prevErr)toast('Error: '+err.slice(6));
-  }
-  prevAct=act;prevErr=err;
+  const s=statusKey();
+  if(prevS!==null&&s!==prevS)toast(
+    s==='active'?'Flick ON · X '+cfg.sens_h.toFixed(1)+'× · Y '+cfg.sens_v.toFixed(1)+'×'
+    :s==='idle'?(prevS==='active'?'Flick OFF':'Flick aktif'+(cfg.filter?' · menunggu game':''))
+    :s==='error'?'Error: '+state.slice(6):'Flick nonaktif');
+  prevS=s;
 }
 // bagian tambahan: buka/tutup dengan tinggi piksel yang dianimasikan, lalu kembali ke auto
 const RM=matchMedia('(prefers-reduced-motion:reduce)');
@@ -406,24 +419,23 @@ function pkErr(msg){
   $('pk').setAttribute('aria-invalid',msg?'true':'false');
 }
 
-// ilustrasi ponsel landscape layar penuh dengan kamera waterdrop. bagian layar yang ter-highlight = area yang dipengaruhi,
-// takik kamera menunjukkan sisi atas ponsel
+// ilustrasi ponsel landscape layar penuh dengan kamera punch hole. bagian layar yang ter-highlight = area yang dipengaruhi,
+// lubang kamera (lingkaran di dalam layar, tepat di tengah sisi pendek) menunjukkan sisi atas ponsel
 let phN=0;
 function phone(region,cam){
-  const id='pc'+(phN++),left=cam==='left';
+  const id='pc'+(phN++),cx=cam==='left'?6:66;
   const hi=region==='none'?'':`<clipPath id="${id}"><rect x="1.5" y="1.5" width="69" height="33" rx="5.25"/></clipPath>`+
     `<rect class="ph-h" clip-path="url(#${id})" x="${region==='right'?36:1.5}" y="1.5" width="${region==='all'?69:34.5}" height="33"/>`;
-  const notch=left?'M1.5 14.2C2.9 14.2 5.4 14.9 5.4 18S2.9 21.8 1.5 21.8Z':'M70.5 14.2C69.1 14.2 66.6 14.9 66.6 18S69.1 21.8 70.5 21.8Z';
   return `<svg viewBox="0 0 72 36" aria-hidden="true"><rect class="ph-s" x="1.5" y="1.5" width="69" height="33" rx="5.25"/>${hi}`+
-    `<path class="ph-n" d="${notch}"/><rect class="ph-b" x=".75" y=".75" width="70.5" height="34.5" rx="6"/></svg>`;
+    `<circle class="ph-n" cx="${cx}" cy="18" r="2.1"/><rect class="ph-b" x=".75" y=".75" width="70.5" height="34.5" rx="6"/></svg>`;
 }
 // grafik kurva: sumbu mendatar kecepatan jari, sumbu tegak hasil. accel = di bawah garis linear, decel = di atas (sama dengan rumus di daemon)
-const CV_PATH={lin:'M12 70L92 6',accel:'M12 70Q52 54 92 6',decel:'M12 70Q52 22 92 6'};
+const CV_PATH={lin:'M12 70L92 6',accel:'M12 70Q52 70 92 6',decel:'M12 70Q52 6 92 6'};
 function curveSVG(k){
   return `<svg viewBox="0 0 100 76" aria-hidden="true"><path class="cv-ax" d="M12 2V70H98"/>`+
     (k==='lin'?'':`<path class="cv-ref" d="${CV_PATH.lin}"/>`)+`<path class="cv-ln" d="${CV_PATH[k]}"/></svg>`;
 }
-const CV_DESC=['Pengali sama di semua kecepatan.','Gerakan pelan tetap presisi (minimal 1×), tarikan cepat memakai pengali penuh.','Gerakan pelan diperkuat lebih besar (hingga 1.5× pengali), tarikan cepat memakai pengali normal.'];
+const CV_DESC=['Pengali sama di semua kecepatan.','Pelan presisi, cepat penuh.','Pelan diperkuat, cepat normal.'];
 function drawArt(){
   all('[data-ph]').forEach(e=>{
     const cam=e.dataset.cam||(cfg.orient===3?'right':'left'),key=e.dataset.ph+cam;
@@ -456,6 +468,7 @@ function render(){
   const err=state.startsWith('error:'), act=running&&state==='active';
   $('badge').textContent=!running?'Mati':err?'Error':act?'Aktif':'Siaga';
   $('dot').className='dot'+(!running?'':err?' err':act?' ok':'');
+  $('stat').dataset.s=!running?'off':err?'err':act?'ok':'idle';
   $('detail').textContent=!running?'Layanan tidak berjalan. Sentuhan tidak dimodifikasi.'
     :err?'Kesalahan: '+state.slice(6)
     :act?'Boost sedang diterapkan pada layar sentuh.'
@@ -473,7 +486,7 @@ function saveCfg(){
 }
 
 async function refresh(full=true){
-  const r=await run(`cat ${DIR}/config 2>/dev/null; echo "running=$([ -f ${DIR}/sensit.pid ] && kill -0 $(cat ${DIR}/sensit.pid) 2>/dev/null && echo 1 || echo 0)"; echo "state=$(cat ${DIR}/sensit.state 2>/dev/null)"`);
+  const r=await run(`cat ${DIR}/config 2>/dev/null; echo "running=$([ -f ${DIR}/flick.pid ] && kill -0 $(cat ${DIR}/flick.pid) 2>/dev/null && echo 1 || echo 0)"; echo "state=$(cat ${DIR}/flick.state 2>/dev/null)"`);
   r.stdout.split('\n').forEach(l=>{
     const i=l.indexOf('='); if(i<0)return;
     const k=l.slice(0,i), v=l.slice(i+1).trim();
@@ -490,24 +503,25 @@ async function refresh(full=true){
 }
 async function guarded(txt,fn){
   if(busy)return;
-  busy=true;silent=true;busyText=txt;render();
-  try{await fn()}finally{busy=false;await refresh(false);silent=false}
+  busy=true;busyText=txt;render();
+  try{await fn()}finally{busy=false;await refresh(false)}
 }
 const start=()=>guarded('Mengaktifkan…',async()=>{
   await saveCfg();
-  const r=await run(`chmod 755 ${DIR}/system/bin/sensit; ${DIR}/system/bin/sensit --daemon --config ${DIR}/config --pidfile ${DIR}/sensit.pid 2>&1`);
+  const r=await run(`chmod 755 ${DIR}/system/bin/flick; ${DIR}/system/bin/flick --daemon --config ${DIR}/config --pidfile ${DIR}/flick.pid 2>&1`);
   const out=(r.stdout+r.stderr).trim();
   log(out);
-  toast(out.startsWith('OK')?'Vektor dimulai':(out.split('\n')[0]||'Gagal memulai'));
+  if(!out.startsWith('OK'))toast(out.split('\n')[0]||'Gagal memulai');
 });
 const stop=()=>guarded('Menonaktifkan…',async()=>{
-  await run(`kill $(cat ${DIR}/sensit.pid) 2>/dev/null; rm -f ${DIR}/sensit.pid`);
+  const was=running;
+  await run(`kill $(cat ${DIR}/flick.pid) 2>/dev/null; rm -f ${DIR}/flick.pid`);
   log('Layanan dihentikan. Sentuhan kembali normal.');
-  toast('Vektor dihentikan');
+  if(!was)toast('Flick sudah nonaktif');
 });
 
 // slider: knob digeser secara relatif terhadap posisi awal sentuhan, ketukan pada trek diabaikan
-const KNOB=16;
+const KNOB=20;
 all('.slider').forEach(s=>{
   const k=s.dataset.k,mn=+s.dataset.min,mx=+s.dataset.max,st=+s.dataset.step,th=s.querySelector('.thumb');
   let drag=false,sx=0,sv=0,tm=0;

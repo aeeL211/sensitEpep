@@ -8,14 +8,16 @@ case "$A" in arm64|arm) ;; *)
   esac
 esac
 BIN=$MODPATH/system/bin
-[ -f "$BIN/sensit.$A" ] || abort "Binary for $A is missing"
+[ -f "$BIN/flick.$A" ] || abort "Binary for $A is missing"
 
-# stop an older running instance, its binary cannot be overwritten while it runs
-OLD=/data/user_de/0/com.android.shell/axeron/plugins/sensit
-[ -f "$OLD/sensit.pid" ] && kill "$(cat "$OLD/sensit.pid")" 2>/dev/null
-rm -f "$OLD/notify.sh" "$OLD/toast.sh"  # the toast now comes from the WebUI
+# stop an older running instance, its binary cannot be overwritten while it runs.
+# the second path is the old Vektor (id sensit): its daemon would still hold the touchscreen
+PL=/data/user_de/0/com.android.shell/axeron/plugins
+for F in "$PL/flick/flick.pid" "$PL/sensit/sensit.pid"; do
+  [ -f "$F" ] && kill "$(cat "$F")" 2>/dev/null
+done
 
-mv -f "$BIN/sensit.$A" "$BIN/sensit"
-rm -f "$BIN/sensit.arm" "$BIN/sensit.arm64"
-chmod 755 "$BIN/sensit"
-ui_print "Vektor installed ($A). Open its WebUI to use it."
+mv -f "$BIN/flick.$A" "$BIN/flick"
+rm -f "$BIN/flick.arm" "$BIN/flick.arm64"
+chmod 755 "$BIN/flick"
+ui_print "Flick installed ($A). Open its WebUI to use it."

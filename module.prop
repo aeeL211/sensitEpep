@@ -1,7 +1,7 @@
-id=sensit
-name=Vektor
-version=v0.8.1
-versionCode=15
+id=flick
+name=Flick
+version=v0.9.0
+versionCode=18
 author=t.me/aeeL2
 description=No-root touch booster with sensitivity curve, stabilizer and HW touch boost, WebUI included. Inspired by Magic Touch from Game Corner.
 axeronPlugin=14000
