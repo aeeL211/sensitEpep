@@ -1,7 +1,7 @@
 id=sensit
-name=Sensitivity
-version=v0.7.2
-versionCode=12
-author=you
-description=No-root touch sensitivity booster (1.0x-5.0x) with WebUI. Inspired by Magic Touch from Game Corner.
+name=Vektor
+version=v0.8.1
+versionCode=15
+author=t.me/aeeL2
+description=No-root touch booster with sensitivity curve, stabilizer and HW touch boost, WebUI included. Inspired by Magic Touch from Game Corner.
 axeronPlugin=14000

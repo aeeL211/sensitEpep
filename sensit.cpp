@@ -22,7 +22,7 @@
 //   config        key=value, see below, reloaded on change (inotify, mtime fallback)
 //   sensit.pid    pid of the daemon
 //   sensit.state  idle | active | error:<reason>
-//   notify.sh     optional hook, called as: notify.sh on|off <sens_h> <sens_v>
+//   hw.sh         optional hook, called as: hw.sh 1|0 (hw touch boost on while the boost is on)
 //
 // build: arm64 and armv7a (32-bit), static libstdc++, see .github/workflows/build.yml
 #include <dirent.h>
@@ -53,6 +53,9 @@
 #define MAXPK 16    // packages kept from the list, also max tracked processes
 #define PKLEN 128   // longest package name + 1
 #define DEFPK "com.dts.freefireth,com.dts.freefiremax"
+#define CS 0.5f    // curve strength: slow movement gets (1 -/+ cs) of the factor, fast gets all of it
+#define SREF 1.5f  // finger speed (panel short sides per second) that counts as a fast flick
+enum { CV_LIN, CV_ACCEL, CV_DECEL };
 
 static volatile sig_atomic_t g_stop = 0;
 static void on_sig(int) { g_stop = 1; }
@@ -65,11 +68,17 @@ static char g_dir[256] = ".";  // plugin folder (where the config lives)
 //   zone           : 0 whole screen, 1 left half, 2 right half
 //   orient         : 1 or 3, which landscape rotation (1 = screen-left is the low raw value)
 //   smooth         : 1 = one euro filter on, strength / resp 1..100 (%)
+//   curve          : 0 linear (default), 1 accel, 2 decel, how the factor depends on finger speed
+//   hw             : 1 = run hw.sh 1 while the boost is on (setprop debug.sf.hw), restored afterwards
 //   filter         : 1 = only while one of the packages is in the foreground, 0 = always
 //   pkgs           : comma separated package names for filter=1 (letters, digits, _ and . only,
 //                    16 max), empty or invalid falls back to the two free fire packages
 // the scaled position is never clamped to the panel, so a swipe cannot stall at the edge.
-// k, smooth and zone are fixed when a finger touches down, so a finger already on the
+// curve shapes the factor k by finger speed u = 0..1 (u = 1 at sref and above), per frame and finger:
+//   accel : k * (1 - cs * (1 - u)), never below 1  -> slow aim stays precise, flicks get the full k
+//   decel : k * (1 + cs * (1 - u))                 -> slow aim is boosted more, flicks get k
+// u is the smoothed speed of the finger over the previous frames (both axes together).
+// k, smooth, curve and zone are fixed when a finger touches down, so a finger already on the
 // screen never jumps. strength / resp apply live, the filter is continuous so nothing jumps.
 // defaults (strength 40, resp 85) come from simulating free fire style aiming: about half of
 // the resting jitter is removed while a fast flick is delayed by less than one touch frame.
@@ -77,6 +86,7 @@ struct Cfg {
   float kh = 1.0f, kv = 1.0f;
   int zone = 0, orient = 1;
   int smooth = 0, strength = 40, resp = 85;
+  int curve = CV_LIN, hw = 0;
   int filter = 1;
   char pk[PKBUF] = DEFPK;
   float fcmin = 3.0f, beta = 5.0f;  // derived one euro parameters
@@ -120,6 +130,8 @@ static void load(const char *path, Cfg &c) {
       else if (!strcmp(k, "smooth")) c.smooth = atoi(v) != 0;
       else if (!strcmp(k, "strength")) c.strength = clampi(atoi(v), 1, 100);
       else if (!strcmp(k, "resp")) c.resp = clampi(atoi(v), 1, 100);
+      else if (!strcmp(k, "curve")) c.curve = clampi(atoi(v), 0, 2);
+      else if (!strcmp(k, "hw")) c.hw = atoi(v) != 0;
       else if (!strcmp(k, "filter")) c.filter = atoi(v) != 0;
     }
     fclose(f);
@@ -131,7 +143,7 @@ static void load(const char *path, Cfg &c) {
 // ---------------------------------------------------------------- state file
 // idle | active | error:<reason>, rewritten only when the text changes
 static char g_st[64];
-static bool g_on = false;  // boost on/off as last announced through notify.sh
+static bool g_on = false;  // boost on/off as last reported in the state file
 
 static void set_state(const char *s) {
   if (!strcmp(s, g_st)) return;
@@ -372,8 +384,8 @@ static int clone_dev(int src) {
 // then scaling of the filtered movement around the touch-down point. filtering comes first so
 // jitter is not amplified. the scaled position is never clamped to the panel, so a swipe never
 // stalls before the finger reaches the screen edge: games only look at the movement between events.
-struct Ax { float k; bool filt, have; float raw, xh, dxh, fp, out; double t; };
-struct Slot { Ax x, y; bool zk; };
+struct Ax { float k; bool filt, have; float raw, xh, dxh, fp, out, fd; double t; };
+struct Slot { Ax x, y; bool zk; int cv; float u; double lt; };  // cv: curve, u: speed 0..1, lt: last moving frame
 static Slot g_sl[MAXSLOT + 1];  // last entry absorbs out-of-range slot numbers
 static int g_cur_slot = 0;
 static uint64_t g_down = 0;           // bitmask of fingers currently down
@@ -381,8 +393,14 @@ static float g_inv = 1.0f / 720;      // 1 / short panel side, makes filter spee
 
 static float alpha(float cutoff, float dt) { return 1.0f / (1.0f + 1.0f / (6.2831853f * cutoff) / dt); }
 
-static int track(int v, double t, Ax &a, const Cfg &c) {
-  if (!a.filt && a.k <= 1.0f) return v;  // nothing to do on this axis
+static float gain(float k, int cv, float u) {
+  if (cv == CV_ACCEL) { float g = k * (1.0f - CS * (1.0f - u)); return g < 1.0f ? 1.0f : g; }
+  if (cv == CV_DECEL) return k * (1.0f + CS * (1.0f - u));
+  return k;
+}
+
+static int track(int v, double t, Slot &s, Ax &a, const Cfg &c) {
+  if (!a.filt && a.k <= 1.0f && !s.cv) return v;  // nothing to do on this axis
   float x = (float)v;
   if (!a.have) {
     a.have = true;
@@ -402,7 +420,10 @@ static int track(int v, double t, Ax &a, const Cfg &c) {
   }
   a.raw = x;
   a.t = t;
-  a.out += (fx - a.fp) * a.k;
+  float d = fx - a.fp;
+  a.fd += d;
+  if (t - s.lt > 0.1) s.u = 0.0f;  // finger rested: the next move starts slow again
+  a.out += d * gain(a.k, s.cv, s.u);
   a.fp = fx;
   return (int)floorf(a.out + 0.5f);
 }
@@ -413,6 +434,7 @@ static void start_touch(Slot &s, const Cfg *c) {
   s.x.k = g_vx ? c->kv : c->kh;  // portrait-native panel: raw x is screen up-down in landscape
   s.y.k = g_vx ? c->kh : c->kv;
   s.x.filt = s.y.filt = c->smooth != 0;
+  s.cv = c->curve;
   s.zk = c->zone == 0;  // left/right is decided on the first horizontal sample of the touch
 }
 
@@ -422,12 +444,31 @@ static void pick_zone(Slot &s, int v, const input_absinfo &r, const Cfg &c) {
   if (c.zone == 0 || span <= 0) return;
   bool low = (v - r.minimum) * 2 < span;
   bool in = (c.zone == 1) == (low == (c.orient == 1));  // orient 1: screen-left = low raw value
-  if (!in) { s.x.k = s.y.k = 1.0f; s.x.filt = s.y.filt = false; }  // outside the zone: untouched
+  if (!in) { s.x.k = s.y.k = 1.0f; s.x.filt = s.y.filt = false; s.cv = CV_LIN; }  // outside the zone: untouched
 }
 
 static double ts(const input_event &e) { return (double)e.time.tv_sec + (double)e.time.tv_usec * 1e-6; }
 
+// closes a frame: the finger speed measured here feeds the curve of the next frame
+static void frame(double t) {
+  for (uint64_t m = g_down; m; m &= m - 1) {
+    Slot &s = g_sl[__builtin_ctzll(m)];
+    float dx = s.x.fd, dy = s.y.fd;
+    s.x.fd = s.y.fd = 0.0f;
+    if (!s.cv) continue;
+    if (s.lt == 0.0) { s.lt = t; continue; }  // touch-down frame
+    if (dx == 0.0f && dy == 0.0f) continue;   // not moving: the gap keeps growing
+    float dt = (float)(t - s.lt);
+    s.lt = t;
+    if (dt < 0.001f) dt = 0.001f;
+    float v = sqrtf(dx * dx + dy * dy) * g_inv / dt / SREF;
+    if (v > 1.0f) v = 1.0f;
+    s.u += alpha(5.0f, dt > 0.1f ? 0.1f : dt) * (v - s.u);  // about 30 ms smoothing
+  }
+}
+
 static void handle(input_event &e, const Cfg &c) {
+  if (e.type == EV_SYN) { if (e.code == SYN_REPORT) frame(ts(e)); return; }
   if (e.type != EV_ABS) return;
   Slot &s = g_sl[g_cur_slot];
   const input_absinfo &ax = g_ai[ABS_MT_POSITION_X], &ay = g_ai[ABS_MT_POSITION_Y];
@@ -443,11 +484,11 @@ static void handle(input_event &e, const Cfg &c) {
       break;
     case ABS_MT_POSITION_X:
       if (!s.zk && !g_vx) pick_zone(s, e.value, ax, c);
-      e.value = track(e.value, ts(e), s.x, c);
+      e.value = track(e.value, ts(e), s, s.x, c);
       break;
     case ABS_MT_POSITION_Y:
       if (!s.zk && g_vx) pick_zone(s, e.value, ay, c);
-      e.value = track(e.value, ts(e), s.y, c);
+      e.value = track(e.value, ts(e), s, s.y, c);
       break;
   }
 }
@@ -542,26 +583,32 @@ static int pump(const Cfg &c) {
   return 0;
 }
 
-// runs <plugin dir>/notify.sh on|off <sens_h> <sens_v>, detached, only on state changes
-static void notify(bool on, const Cfg &c) {
+// runs <plugin dir>/hw.sh 1|0 through sh, detached
+static void hw_run(bool on) {
   char sc[300];
-  snprintf(sc, sizeof sc, "%s/notify.sh", g_dir);
+  snprintf(sc, sizeof sc, "%s/hw.sh", g_dir);
   if (access(sc, R_OK) != 0) return;
-  char h[16], v[16];
-  snprintf(h, sizeof h, "%.1f", (double)c.kh);
-  snprintf(v, sizeof v, "%.1f", (double)c.kv);
   if (fork() == 0) {
     signal(SIGCHLD, SIG_DFL); signal(SIGPIPE, SIG_DFL); signal(SIGHUP, SIG_DFL);
-    execl("/system/bin/sh", "sh", sc, on ? "on" : "off", h, v, (char *)nullptr);
+    execl("/system/bin/sh", "sh", sc, on ? "1" : "0", (char *)nullptr);
     _exit(127);
   }
 }
 
+// hw.sh 1|0: the hw touch boost follows "boost is on and hw=1", also when hw changes while on
+static bool g_hw = false;
+static void hw_sync(const Cfg &c) {
+  bool want = g_on && c.hw;
+  if (want == g_hw) return;
+  g_hw = want;
+  hw_run(want);
+}
+
 static void on_change(bool on, const Cfg &c) {
   set_state(on ? "active" : "idle");
-  if (on == g_on) return;  // e.g. regrab after a syn_dropped: no second notification
+  if (on == g_on) return;  // e.g. regrab after a syn_dropped: nothing changed
   g_on = on;
-  notify(on, c);
+  hw_sync(c);
 }
 
 // ---------------------------------------------------------------- helpers
@@ -692,7 +739,7 @@ int main(int argc, char **argv) {
   sigaction(SIGINT, &sa, nullptr);
   signal(SIGHUP, SIG_IGN);
   signal(SIGPIPE, SIG_IGN);
-  signal(SIGCHLD, SIG_IGN);  // detached notify.sh children are reaped automatically
+  signal(SIGCHLD, SIG_IGN);  // detached hw.sh children are reaped automatically
 
   // config is replaced by rename and inotify tells us, fallback: mtime check on each tick
   int ifd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
@@ -711,6 +758,7 @@ int main(int argc, char **argv) {
       if (ifd < 0 && !stat(cfgp, &st) && (st.st_mtim.tv_sec != ms || st.st_mtim.tv_nsec != mn)) {
         ms = st.st_mtim.tv_sec; mn = st.st_mtim.tv_nsec;
         load(cfgp, cfg);
+        hw_sync(cfg);
       }
       want = !cfg.filter || in_game();
       if (g_src < 0) {
@@ -738,7 +786,7 @@ int main(int argc, char **argv) {
     if (r < 0) { if (errno == EINTR) continue; break; }
     if (r == 0) continue;
 
-    if ((pf[1].revents & POLLIN) && cfg_changed(ifd, base)) { load(cfgp, cfg); next = 0; }
+    if ((pf[1].revents & POLLIN) && cfg_changed(ifd, base)) { load(cfgp, cfg); hw_sync(cfg); next = 0; }
     if (g_src >= 0) {
       if (pf[0].revents & POLLIN) {
         int pr = pump(cfg);
@@ -749,7 +797,8 @@ int main(int argc, char **argv) {
     }
   }
   if (g_src >= 0) deactivate();
-  if (g_on) notify(false, cfg);
+  g_on = false;
+  hw_sync(cfg);  // restores the property when it was changed
   ioctl(g_uin, UI_DEV_DESTROY);
   unlink(pidp);
   char sp[300];
